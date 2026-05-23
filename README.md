@@ -1,5 +1,3 @@
-Chào bạn, với vai trò **Senior Fullstack Architect + UI/UX Designer + AI System Designer**, tôi sẽ thiết kế toàn bộ nền tảng **"LingoTone: AI Chinese Speaking Coach"** – một giải pháp hiện đại, lấy cảm hứng từ HiHSK nhưng mạnh mẽ hơn nhờ AI.
-
 Dưới đây là bản thiết kế chi tiết từ UX đến kiến trúc backend và AI.
 
 ---

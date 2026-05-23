@@ -1,285 +1,699 @@
-Dưới đây là bản thiết kế chi tiết từ UX đến kiến trúc backend và AI.
+# README.md — LingoTone AI Pro
+
+> AI-first Chinese Learning Platform inspired by Duolingo + Elsa Speak + ChatGPT Voice
 
 ---
 
-# PHẦN 1: PHÂN TÍCH HỆ THỐNG & KIẾN TRÚC
+# 🧠 LingoTone AI Pro
 
-## 1. Kiến trúc tổng thể (System Architecture)
+LingoTone AI Pro là nền tảng học tiếng Trung thế hệ mới tích hợp AI realtime, tập trung vào:
+
+* 🎙️ Luyện phát âm thanh điệu tiếng Trung bằng AI
+* 🤖 Hội thoại realtime với AI Role-play
+* 📈 Cá nhân hóa lộ trình học theo HSK
+* 🧠 AI ghi nhớ lỗi sai của người học
+* 🌊 Phân tích waveform + tone contour trực quan
+* ⚡ Trải nghiệm immersive như native app
+
+Hệ thống được thiết kế theo phong cách:
+
+* Duolingo (gamification)
+* Elsa Speak (AI pronunciation)
+* ChatGPT Voice (voice interaction)
+* HiHSK / SuperChinese (Chinese learning UX)
+
+---
+
+# 🚀 Demo Highlights
+
+## ✨ AI-first Immersive Experience
+
+### 🎤 AI Voice Conversation
+
+* AI avatar realtime
+* Voice waveform animation
+* Streaming AI response
+* AI emotion switching
+* AI listening/thinking states
+
+### 🧠 Pronunciation Intelligence
+
+* Tone contour visualization
+* Native vs User overlay graph
+* Realtime pronunciation scoring
+* AI coach feedback
+* Tone accuracy analytics
+
+### 📚 Smart Learning System
+
+* AI remembers weak tones
+* Dynamic lesson recommendation
+* Personalized HSK progression
+* Smart vocabulary review
+* Daily AI missions
+
+### 🌌 Premium UX/UI
+
+* Glassmorphism UI
+* Animated particles
+* Floating Hanzi background
+* Neon dark mode
+* Mobile-native experience
+
+---
+
+# 🏗️ SYSTEM ARCHITECTURE
+
+## Overall Architecture
 
 ```mermaid
 graph TD
-    Client[Web Client Vue.js 3] --> CDN[CloudFront/CDN]
-    Client --> SignalR[SignalR Hub - Realtime]
+    Client[Vue.js Frontend] --> CDN[CloudFront/CDN]
+    Client --> SignalR[SignalR Realtime Hub]
     Client --> API[ASP.NET Core Web API]
-    
-    API --> Redis[Redis Cache]
+
     API --> SQL[SQL Server]
-    API --> Azure[Azure Blob Storage]
-    
-    API --> AI_GW[AI Gateway]
-    AI_GW --> STT[Azure Speech-to-Text / Whisper]
-    AI_GW --> LLM[Azure OpenAI GPT-4o / DeepSeek]
-    AI_GW --> TTS[Azure Text-to-Speech / ElevenLabs]
-    AI_GW --> PRON[Azure Pronunciation Assessment]
-    
-    SignalR --> Redis_Pub[Redis Pub/Sub]
+    API --> Redis[Redis Cache]
+    API --> Blob[Azure Blob Storage]
+
+    API --> AI_Gateway[AI Gateway]
+
+    AI_Gateway --> STT[Whisper / Azure STT]
+    AI_Gateway --> GPT[GPT-4o / DeepSeek]
+    AI_Gateway --> TTS[Azure Neural TTS]
+    AI_Gateway --> Pronunciation[Azure Pronunciation Assessment]
+
+    SignalR --> RedisPub[Redis Pub/Sub]
 ```
 
-**Nguyên tắc:**
-- **Clean Architecture**: Domain (Entities, Interfaces), Application (Use Cases), Infrastructure (Services, Data), Presentation (API, Hubs).
-- **CQRS Pattern** cho phần AI và Progress tracking.
-- **Event-driven** cho Streak, Badge, Leaderboard.
+---
 
-## 2. Database Design (ERD)
+# 🧩 Clean Architecture Design
 
-**Bảng chính:**
+```text
+Presentation Layer
+ ├── Web API
+ ├── SignalR Hub
+ └── Vue.js Frontend
 
-1.  **Users**
-    - `Id`, `Email`, `PasswordHash`, `FullName`, `CurrentHSKLevel`, `Xp`, `StreakDays`, `LastActiveDate`, `IsDarkMode`, `AvatarUrl`
-2.  **UserSettings** (1-1 với User): `AiVoiceId`, `LearningGoal`, `DailyTargetMinutes`
-3.  **Vocabularies**:
-    - `Id`, `Word`, `Pinyin`, `Meaning`, `HSKLevel`, `Topic` (Giao tiếp: Hỏi đường, Nhà hàng...), `AudioUrl`
-4.  **UserVocabProgress**:
-    - `UserId`, `VocabularyId`, `MasteryLevel` (0-5), `LastReviewed`, `IsBookmarked`
-5.  **Lessons**:
-    - `Id`, `Title`, `HSKLevel`, `Topic`, `LessonType` (Listening, Reading, Speaking), `ContentJson`
-6.  **QuizQuestions**: `Id`, `LessonId`, `QuestionType`, `OptionsJson`, `CorrectAnswer`
-7.  **UserQuizAttempts**: `Id`, `UserId`, `Score`, `TimeSpent`, `CompletedAt`
-8.  **AIConversationSessions**:
-    - `Id`, `UserId`, `Role` (Friend, Teacher, Waiter), `HSKLevel`, `StartedAt`
-9.  **AIConversationMessages**:
-    - `Id`, `SessionId`, `Role` (User/AI), `Text`, `AudioUrl`, `PronunciationScore`, `Timestamp`
-10. **PronunciationPracticeHistory**:
-    - `Id`, `UserId`, `OriginalText`, `UserAudioUrl`, `AccuracyScore`, `ToneScore`, `FluencyScore`, `FeedbackJson`
-11. **Leaderboard**: View tính toán từ `UserStats` hoặc bảng `DailyUserStats`.
+Application Layer
+ ├── CQRS
+ ├── Use Cases
+ ├── DTOs
+ └── AI Orchestrator
 
-## 3. API Design (RESTful + SignalR)
+Domain Layer
+ ├── Entities
+ ├── Interfaces
+ ├── Value Objects
+ └── Business Rules
 
-### REST API (ASP.NET Core)
-```csharp
-// Auth
+Infrastructure Layer
+ ├── EF Core
+ ├── Redis
+ ├── Azure Services
+ ├── AI Providers
+ └── Blob Storage
+```
+
+---
+
+# 🧠 AI PIPELINE
+
+## Voice Conversation Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant VueClient
+    participant SignalR
+    participant API
+    participant AI
+    participant TTS
+
+    User->>VueClient: Speak Chinese
+    VueClient->>SignalR: Stream Audio
+    SignalR->>API: Voice Chunk
+    API->>AI: Speech-to-Text
+    AI->>AI: Tone Analysis
+    AI->>AI: GPT Role-play Response
+    AI->>TTS: Generate Voice
+    TTS->>VueClient: Stream AI Voice
+    VueClient->>User: Play Response
+```
+
+---
+
+# 🎯 CORE FEATURES
+
+# 1. HOME PAGE
+
+## Features
+
+* Animated AI Hero Section
+* Floating Hanzi background
+* AI speaking preview
+* Live waveform
+* AI tutor introduction
+* Scenario cards
+* AI mission system
+
+## UX Goals
+
+* Tạo cảm giác “AI đang sống”
+* Gây ấn tượng mạnh ngay khi mở app
+* Startup-level first impression
+
+---
+
+# 2. AI CHAT SYSTEM
+
+## Realtime AI Role-play
+
+### AI Roles
+
+* 👨‍🏫 Giáo viên
+* ✈️ Nhân viên sân bay
+* 🍜 Nhà hàng
+* 🛍️ Người bán hàng
+* 👥 Bạn bè
+* 💼 Văn phòng
+
+## AI Capabilities
+
+### Context Memory
+
+AI nhớ:
+
+* Tone user hay sai
+* Từ vựng user yếu
+* Tốc độ nói
+* Trình độ HSK
+* Conversation history
+
+### Dynamic Difficulty
+
+Nếu user:
+
+* nói chậm → AI nói chậm
+* sai nhiều → AI đơn giản hóa
+* tiến bộ → AI tăng độ khó
+
+## Speaking HUD
+
+Realtime metrics:
+
+* Tone Accuracy
+* Fluency
+* Speed
+* Confidence
+
+---
+
+# 3. PRONUNCIATION STUDIO
+
+## Tone Analysis
+
+### Supported Analysis
+
+| Metric        | Description             |
+| ------------- | ----------------------- |
+| Tone Accuracy | Độ chính xác thanh điệu |
+| Fluency       | Độ trôi chảy            |
+| Rhythm        | Nhịp điệu               |
+| Pronunciation | Phát âm chuẩn           |
+| Speed         | Tốc độ nói              |
+
+---
+
+## Tone Visualization
+
+### Features
+
+* Waveform animation
+* Tone contour graph
+* Native vs User overlay
+* Color-coded feedback
+* Radar chart analytics
+
+---
+
+## AI Coach Feedback
+
+Ví dụ:
+
+```text
+❌ "Má" chưa lên đủ cao.
+Hãy kéo giọng từ trung bình lên cao hơn ở cuối câu.
+```
+
+---
+
+# 4. DASHBOARD ANALYTICS
+
+## Dashboard Metrics
+
+### User Progress
+
+* XP system
+* Streak tracking
+* Weekly learning time
+* Speaking score
+* HSK progression
+
+### AI Insights
+
+* Tone improvement analytics
+* Personalized recommendations
+* Weakness detection
+* Smart lesson suggestion
+
+---
+
+# 5. VOCABULARY SYSTEM
+
+## Features
+
+* Swipe flashcards
+* Audio pronunciation
+* HSK tagging
+* Bookmarking
+* Smart spaced repetition
+
+## Vocabulary Topics
+
+* Airport
+* Restaurant
+* Shopping
+* Hotel
+* Dating
+* Office
+* Daily conversation
+
+---
+
+# 6. LESSON SYSTEM
+
+## Lesson Types
+
+* Reading
+* Listening
+* Speaking
+* Drag & Drop
+* Quiz
+* AI explanation
+
+## AI-Assisted Learning
+
+AI sẽ:
+
+* giải thích từ khó
+* phân tích ngữ pháp
+* tạo ví dụ mới
+* điều chỉnh bài học theo user
+
+---
+
+# 🌙 DARK MODE SYSTEM
+
+## Design Language
+
+### Light Theme
+
+| Element    | Color   |
+| ---------- | ------- |
+| Primary    | #4CD964 |
+| Accent     | #FF9500 |
+| Background | #F8FAFC |
+
+### Dark Theme
+
+| Element    | Color   |
+| ---------- | ------- |
+| Background | #0F172A |
+| Card       | #1E293B |
+| Border     | #334155 |
+| Text       | #E2E8F0 |
+
+---
+
+# 📱 MOBILE EXPERIENCE
+
+## Mobile-first Features
+
+* Sticky mic button
+* Bottom navigation
+* Gesture UI
+* Fullscreen speaking mode
+* Native-app feeling
+
+---
+
+# 🗃️ DATABASE DESIGN
+
+## Main Tables
+
+### Users
+
+```sql
+Users
+- Id
+- Email
+- PasswordHash
+- FullName
+- AvatarUrl
+- CurrentHSKLevel
+- XP
+- StreakDays
+- LastActiveDate
+```
+
+### AIConversationSessions
+
+```sql
+AIConversationSessions
+- Id
+- UserId
+- Role
+- HSKLevel
+- StartedAt
+```
+
+### PronunciationPracticeHistory
+
+```sql
+PronunciationPracticeHistory
+- Id
+- UserId
+- OriginalText
+- UserAudioUrl
+- AccuracyScore
+- ToneScore
+- FluencyScore
+- FeedbackJson
+```
+
+---
+
+# 🔌 API DESIGN
+
+# REST API
+
+## Authentication
+
+```http
 POST /api/auth/register
 POST /api/auth/login
+```
 
-// Vocabulary
-GET /api/vocab?hskLevel=2&topic=restaurant
+## Vocabulary
+
+```http
+GET /api/vocab?hsk=2
 POST /api/vocab/{id}/bookmark
-POST /api/vocab/{id}/review (cập nhật mastery)
+```
 
-// Lessons
-GET /api/lessons?type=reading&level=3
-GET /api/lessons/{id}/quiz
+## Pronunciation
 
-// Progress
-GET /api/users/me/progress/dashboard
-GET /api/users/me/streak
+```http
+POST /api/pronunciation/assess
+```
 
-// Pronunciation
-POST /api/pronunciation/assess (gửi audio file)
+## AI Chat
 
-// AI Chat
+```http
 POST /api/ai/session/create
 GET /api/ai/session/{id}/history
 ```
 
-### SignalR Hub (Realtime)
-- **IChatHub**: `SendVoiceChunk`, `ReceiveAIResponse`, `ReceiveTranscript`, `ReceiveTypingAnimation`
-- **IPronunciationHub**: `SendAudioStream`, `ReceiveWaveformData`, `ReceiveScoreUpdate`
+---
 
-## 4. AI Service Architecture
+# ⚡ SIGNALR REALTIME EVENTS
 
-```yaml
-AI Orchestrator:
-  - Input: User voice stream, Conversation context, User HSK level.
-  - STT: Azure Speech-to-Text (with custom acoustic model for Chinese learners).
-  - LLM Prompt Engineering:
-    "Bạn là nhân viên nhà hàng, HSK cấp 2. 
-     Người học yếu thanh điệu. Hãy nói chậm, dùng câu ngắn, 
-     nếu họ sai -> lặp lại đúng 1 lần.
-     Response format: JSON { text, pinyin, difficulty_adjusted }"
-  - TTS: Azure Neural TTS (cn-CN-XiaoxiaoNeural) - realtime streaming.
-  - Pronunciation Assessment: Azure Cognitive Services - Chấm tone, phoneme, fluency.
+## ChatHub
+
+```csharp
+SendVoiceChunk()
+ReceiveAIResponse()
+ReceiveTranscript()
+ReceiveTypingAnimation()
+```
+
+## PronunciationHub
+
+```csharp
+SendAudioStream()
+ReceiveWaveformData()
+ReceiveScoreUpdate()
 ```
 
 ---
 
-# PHẦN 2: THIẾT KẾ UI/UX CHI TIẾT (Phong cách HiHSK + Duolingo + ChatGPT)
-
-**Theme**: Chủ đạo là màu **Xanh Mint (#4CD964)**, **Trắng ngà**, **Xám nhạt**, **Cam (#FF9500)** cho highlight. Dark mode dùng nền đen carbon, chữ xám nhạt.
-
-## 1. Trang Home (Sau Login)
-
-```
-+---------------------------------------------------+
-| [Logo] LingoTone  |  HSK2 ▼  | 🔍 | 🔔 | 👤Avatar |
-+---------------------------------------------------+
-|                                                   |
-|  Xin chào, Minh! 🔥 7 ngày streak | 🎯 Hôm nay: 50/100 XP |
-|  [Thanh XP] ============░░░░░░░░                   |
-|                                                   |
-|  +-------------------------------------------------+
-|  | 📢 TIẾP TỤC BÀI HỌC             |  🎲 Mini Game  |
-|  | Bài 5: Gọi món trong nhà hàng   |  [Chơi ngay]   |
-|  | [Tiếp tục học]                   |               |
-|  +-------------------------------------------------+
-|                                                   |
-|  🧠 LUYỆN TẬP NHANH                               |
-|  [Flashcard]  [Nghe]  [Đọc]  [Viết]  [🎙️ AI Chat] |
-|                                                   |
-|  📚 HỌC THEO CHỦ ĐỀ GIAO TIẾP                     |
-|  [Chào hỏi] [Mua sắm] [Sân bay] [Bệnh viện] ...   |
-|                                                   |
-|  🏆 Bảng xếp hạng tuần                            |
-|  1. Thanh - 2450 XP   2. Lan - 2100 XP ...       |
-+---------------------------------------------------+
-```
-
-## 2. Trang AI Chat (Realtime Voice)
-
-```
-+---------------------------------------------------+
-| ← Quay lại          Đang nói với: AI - Nhân viên sân bay (HSK3) |
-|                                   [⚙️ Đổi vai]    |
-+---------------------------------------------------+
-|                                                   |
-|  [Avatar AI]   Bạn: Chào, tôi muốn đổi vé.        |
-|  [Anim đang nói] AI: 您好，请出示您的机票和护照。  |
-|                (Nính hǎo, qǐng chūshì nín de jīpiào hé hùzhào) |
-|                                                   |
-|  [Avatar AI]   Bạn: Toi muon... (sai tone)        |
-|  AI: ★★★★☆ (4/5) - Sai thanh 3 của "muốn". Hãy thử lại: "Wǒ xiǎng" |
-|                                                   |
-+---------------------------------------------------+
-| 🎙️ [Nhấn giữ để nói] ⚡Đang nghe... 🔄 Realtime Transcript: |
-| "Tôi muốn..."                                     |
-+---------------------------------------------------+
-| [Điểm phát âm] Thanh điệu: 85% | Độ trôi chảy: 70% |
-+---------------------------------------------------+
-```
-
-## 3. Trang Luyện Speaking (Pronunciation)
-
-```
-+---------------------------------------------------+
-| 🎤 Luyện tập: Thanh điệu "Mā, Má, Mǎ, Mà"         |
-+---------------------------------------------------+
-|                                                   |
-|  [Waveform Animation] ▁▂▃▄▅▆▇██▇▆▅▄▃▂▁            |
-|                                                   |
-|  Màn hình hiển thị tone:                          |
-|     [Mā] Cao ngang: Bạn: --- (Đúng) ✓             |
-|     [Má] Lên cao: Bạn: --- (Sai, ra thanh 3) ✗   |
-|                                                   |
-|  Feedback:                                        |
-|  ❌ Từ "Má": Bạn phát âm giống "Mǎ" (thanh 3).   |
-|     Hãy kéo cao giọng hơn ở cuối.                |
-|  🎯 Độ chính xác tổng: 78%                       |
-|                                                   |
-|  [Thử lại]  [Bài tiếp theo]                      |
-+---------------------------------------------------+
-```
-
-## 4. Dashboard & Dark Mode
-
-**Dark Mode** (Toggle góc phải):
-- Nền chính: `#1A1A1A`
-- Card: `#2D2D2D`
-- Border: `#3D3D3D`
-- Chữ: `#E0E0E0`
-- Xanh mint: `#30D158`
-
-**Dashboard**: Biểu đồ tiến độ HSK1->6, số từ đã nhớ, giờ học/tuần, biểu đồ sai thanh điệu nhiều nhất.
-
----
-
-# PHẦN 3: FOLDER STRUCTURE & MODULES
-
-```
-LingoTone.sln
-├── src/
-│   ├── Domain/ (Entities, Enums, Interfaces)
-│   ├── Application/ (UseCases: LoginCommand, AssessPronunciation, ChatWithAI)
-│   ├── Infrastructure/
-│   │   ├── Data/ (DbContext, Repositories)
-│   │   ├── Services/ (AzureSTTService, OpenAIService, SignalRHub)
-│   │   └── Cache/ (RedisService)
-│   └── WebAPI/
-│       ├── Controllers/
-│       ├── Hubs/ (ChatHub, PronunciationHub)
-│       └── Middlewares/
-├── client/ (Vue.js 3)
-│   ├── src/
-│   │   ├── views/ (Home, Chat, Speaking, Dashboard, Profile, Flashcard)
-│   │   ├── components/ (AudioWaveform, AiAvatar, ScoreRing, StreakCalendar)
-│   │   ├── composables/ (useRealtimeSpeech, usePronunciation, useSignalR)
-│   │   ├── stores/ (pinia: user, lesson, aiSession)
-│   │   └── assets/ (dark.css, light.css)
-```
-
----
-
-# PHẦN 4: AI NỔI BẬT & HƯỚNG MỞ RỘNG
-
-## Các tính năng AI đặc sắc:
-
-1.  **AI Role-play với Context Window nhớ tới 10 turn** – tự động giảm độ khó nếu user sai nhiều.
-2.  **Tone Visualization 3D** – hiển thị đường cong thanh điệu của user chồng lên mẫu chuẩn.
-3.  **Speaking Score Breakdown**: `Tone (40%) + Pronunciation (30%) + Fluency (20%) + Speed (10%)`.
-4.  **Smart Recommendation**: Dùng Collaborative Filtering đề xuất bài học dựa trên lỗi sai của user.
-
-## Hướng mở rộng:
-
-- **Mobile App (Flutter/React Native)** dùng chung API.
-- **AI Video Call** (WebRTC + Azure Video Indexer).
-- **Gamification nâng cao** (Huy hiệu, Vật phẩm, Bảng xếp hạng theo khu vực).
-- **Xuất báo cáo PDF** tiến độ gửi giáo viên.
-- **Hỗ trợ đa ngôn ngữ** (Tiếng Anh, Việt, Nhật) cho UI.
-
----
-
-# PHẦN 5: TECHNICAL GUIDELINES (CHO TEAM DEV)
-
-## AI Models đề xuất:
-
-| Tác vụ                     | Model khuyến nghị                                       |
-| -------------------------- | ------------------------------------------------------- |
-| Speech-to-Text (CN)        | Azure Cognitive Services (Custom model) hoặc Whisper V3 |
-| Pronunciation Assessment   | Azure Pronunciation Assessment API                      |
-| LLM cho role-play          | GPT-4o (chi phí cao) hoặc DeepSeek-V2 (tối ưu tiếng Trung)|
-| Text-to-Speech realtime    | Azure Neural TTS (Websocket streaming)                  |
-| Recommendation             | Matrix Factorization (ML.NET) + Redis cache            |
-
-## Cache Strategy:
-
-- **Redis**: Session AI Chat (lưu 15 phút), HSK vocabulary lists, User streak tạm thời.
-- **CDN**: Audio files (TTS cached), Avatars.
-
-## Scaling Strategy:
-
-1.  **Horizontal scaling** cho ASP.NET Core + SignalR (dùng Redis backplane).
-2.  **Separate AI Worker** (Background service xử lý pronunciation async).
-3.  **Rate limiting** cho API AI (dùng Azure API Management).
-
-## Authentication Flow:
+# 📂 PROJECT STRUCTURE
 
 ```text
-Vue.js -> OTP/Password -> ASP.NET Core Identity -> JWT Token (HttpOnly Cookie) + Refresh Token.
-SignalR kết nối dùng AccessToken query string.
+LingoTone/
+├── backend/
+│   ├── Domain/
+│   ├── Application/
+│   ├── Infrastructure/
+│   └── WebAPI/
+│
+├── frontend/
+│   ├── components/
+│   ├── composables/
+│   ├── views/
+│   ├── stores/
+│   └── assets/
+│
+├── docs/
+├── ai-prompts/
+└── README.md
 ```
 
 ---
 
-# PHẦN 6: KẾT LUẬN & LỘ TRÌNH PHÁT TRIỂN (MVP 3 tháng)
+# 🧠 AI MODELS & SERVICES
 
-**Month 1**: Clean Architecture + Auth + Vocabulary + Flashcard + Quiz (No AI).  
-**Month 2**: SignalR Chat + Pronunciation Assessment + Azure STT/TTS.  
-**Month 3**: AI Role-play + Dashboard analytics + Dark mode + Optimization.
+| Task                     | Technology                       |
+| ------------------------ | -------------------------------- |
+| STT                      | Whisper V3 / Azure STT           |
+| TTS                      | Azure Neural TTS                 |
+| LLM                      | GPT-4o / DeepSeek                |
+| Pronunciation Assessment | Azure Cognitive Services         |
+| Recommendation Engine    | ML.NET / Collaborative Filtering |
+| Realtime Communication   | SignalR                          |
+| Cache                    | Redis                            |
 
-**Điểm mạnh khiến dự án này nổi bật với giám khảo/doanh nghiệp:**
+---
 
--   **Ứng dụng AI thực tế** không phải demo.
--   **Tối ưu cho người Việt học tiếng Trung** (so sánh thanh điệu).
--   **Realtime kiến trúc enterprise** (Clean Architecture, SignalR, Redis).
--   **Trải nghiệm người dùng đẳng cấp** (lấy cảm hứng Duolingo + ChatGPT).
+# 🔒 AUTHENTICATION FLOW
 
-Bạn có thể bắt đầu xây dựng ngay với `dotnet new webapi` + `npm create vue@latest`. Tôi sẵn sàng đi sâu vào bất kỳ module nào (ví dụ: viết code SignalR Hub hoặc component Vue cho waveform).
+```mermaid
+sequenceDiagram
+    participant User
+    participant Vue
+    participant API
+    participant Identity
+
+    User->>Vue: Login
+    Vue->>API: Credentials
+    API->>Identity: Validate
+    Identity-->>API: JWT Token
+    API-->>Vue: Access + Refresh Token
+```
+
+---
+
+# 📈 SCALING STRATEGY
+
+## Backend Scaling
+
+* Horizontal scaling
+* Redis backplane
+* AI worker services
+* Rate limiting
+
+## CDN Strategy
+
+* Audio caching
+* Avatar caching
+* Static asset optimization
+
+---
+
+# 🎮 GAMIFICATION SYSTEM
+
+## Features
+
+* XP
+* Daily streak
+* Leaderboard
+* Achievement badges
+* AI missions
+* Unlockable content
+
+---
+
+# 🧪 FUTURE ROADMAP
+
+# Phase 1 — MVP
+
+* Auth
+* Vocabulary
+* Flashcard
+* Quiz
+* Dashboard
+
+# Phase 2 — AI Core
+
+* Realtime STT/TTS
+* Pronunciation Assessment
+* SignalR AI Chat
+
+# Phase 3 — Advanced AI
+
+* AI Memory
+* Smart recommendation
+* Dynamic role-play
+* Adaptive difficulty
+
+# Phase 4 — Expansion
+
+* Mobile app
+* WebRTC AI Call
+* Multiplayer practice
+* AI teacher dashboard
+
+---
+
+# 👨‍💻 TEAM RESPONSIBILITIES
+
+# 👤 Member 1 — Frontend & UI/UX Engineer
+
+## Responsibilities
+
+* Vue.js UI
+* TailwindCSS
+* Dark mode
+* Animations
+* Responsive design
+* Mobile UX
+* Glassmorphism effects
+
+## Main Modules
+
+* Home page
+* Dashboard
+* Vocabulary UI
+* Navigation system
+* Theme system
+
+---
+
+# 👤 Member 2 — AI & Realtime Engineer
+
+## Responsibilities
+
+* SignalR
+* Voice streaming
+* AI orchestration
+* GPT integration
+* STT/TTS pipeline
+* Pronunciation analysis
+
+## Main Modules
+
+* AI Chat
+* Realtime voice
+* AI Coach
+* Waveform system
+* AI memory
+
+---
+
+# 👤 Member 3 — Backend & Database Engineer
+
+## Responsibilities
+
+* ASP.NET Core API
+* SQL Server
+* Entity Framework
+* Redis cache
+* Authentication
+* CQRS architecture
+
+## Main Modules
+
+* REST API
+* Database
+* User system
+* Progress tracking
+* AI session persistence
+
+---
+
+# 👤 Member 4 — DevOps & QA Engineer
+
+## Responsibilities
+
+* CI/CD
+* Azure deployment
+* Docker
+* Performance testing
+* Security
+* Monitoring
+
+## Main Modules
+
+* Deployment pipeline
+* Load testing
+* Logging
+* Error tracking
+* API monitoring
+
+---
+
+# 🏆 WHY THIS PROJECT STANDS OUT
+
+## Technical Strength
+
+✅ Clean Architecture
+✅ Realtime AI System
+✅ Enterprise-grade backend
+✅ AI Voice Pipeline
+✅ Scalable infrastructure
+
+## Product Strength
+
+✅ AI-first UX
+✅ Personalized learning
+✅ Chinese tone analysis
+✅ Startup-level design
+✅ Mobile immersive experience
+
+## Academic Strength
+
+✅ Applied AI
+✅ Speech processing
+✅ Recommendation system
+✅ Realtime architecture
+✅ Human-computer interaction
+
+---
+
+# 🧡 Inspiration
+
+Inspired by:
+
+* Duolingo
+* ELSA Speak
+* OpenAI
+* Hi HSK
+
+---
+
+# 📌 Final Vision
+
+> “LingoTone AI không chỉ là website học tiếng Trung.
+> Đây là AI speaking companion giúp người Việt tự tin giao tiếp tiếng Trung bằng công nghệ AI realtime.”

@@ -1,0 +1,275 @@
+@model IEnumerable<LingoToneMVC.Models.HskWord>
+@{
+    ViewData["Title"] = "Từ điển Hán tự AI";
+}
+
+<div class="animate-slide-in">
+    <h2 class="page-title">🔍 Từ điển Hán tự AI</h2>
+
+    <form method="get" action="/Character" class="d-flex gap-2 mb-4">
+        <div class="flex-grow-1 position-relative">
+            <i class="fa-solid fa-magnifying-glass position-absolute text-secondary" style="top: 50%; left: 16px; transform: translateY(-50%);"></i>
+            <input type="text" name="search" id="searchInput" class="form-control" style="padding-left: 44px; height: 48px; border-radius: 12px; background: rgba(255,255,255,0.8);" placeholder="Tìm kiếm chữ Hán, pinyin, nghĩa Việt, nghĩa Anh..." value="@ViewBag.Search" />
+        </div>
+        <select name="hsk" id="hskSelect" class="form-control" style="width: auto; height: 48px; border-radius: 12px; background: rgba(255,255,255,0.8);" onchange="this.form.submit()">
+            @if (ViewBag.SelectedHsk == "all") { <option value="all" selected>Tất cả HSK</option> } else { <option value="all">Tất cả HSK</option> }
+            @if (ViewBag.SelectedHsk == "1") { <option value="1" selected>HSK 1</option> } else { <option value="1">HSK 1</option> }
+            @if (ViewBag.SelectedHsk == "2") { <option value="2" selected>HSK 2</option> } else { <option value="2">HSK 2</option> }
+            @if (ViewBag.SelectedHsk == "3") { <option value="3" selected>HSK 3</option> } else { <option value="3">HSK 3</option> }
+            @if (ViewBag.SelectedHsk == "4") { <option value="4" selected>HSK 4</option> } else { <option value="4">HSK 4</option> }
+            @if (ViewBag.SelectedHsk == "5") { <option value="5" selected>HSK 5</option> } else { <option value="5">HSK 5</option> }
+            @if (ViewBag.SelectedHsk == "6") { <option value="6" selected>HSK 6</option> } else { <option value="6">HSK 6</option> }
+        </select>
+        <button type="submit" class="btn btn-primary" style="border-radius: 12px; padding: 0 24px; font-weight: bold;">Tìm</button>
+    </form>
+
+    <div id="character-grid" class="character-grid">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 text-secondary w-100">
+                <i class="fa-solid fa-search fs-1 mb-3 opacity-50"></i>
+                <p>Không tìm thấy Hán tự nào phù hợp.</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var c in Model)
+            {
+                string mainMeaning = !string.IsNullOrEmpty(c.MeaningVietnamese) ? c.MeaningVietnamese : c.MeaningEnglish;
+                string englishMeaning = string.IsNullOrEmpty(c.MeaningVietnamese) ? "" : c.MeaningEnglish;
+                bool hasViet = !string.IsNullOrEmpty(c.MeaningVietnamese);
+
+                <div class="glass-card character-card d-flex flex-column align-items-center justify-content-center" onclick="showCharModal('@c.Hanzi')">
+                    <div class="hanzi">@c.Hanzi</div>
+                    <div class="text-success fw-bold my-1">@c.Pinyin</div>
+                    <div class="text-dark small fw-medium mb-1 text-truncate w-100 text-center px-2" title="@mainMeaning">@mainMeaning</div>
+                    @if (!hasViet && !string.IsNullOrEmpty(englishMeaning))
+                    {
+                        <div class="text-secondary mb-2 text-truncate w-100 text-center px-2" style="font-size:10px;" title="@englishMeaning">@englishMeaning</div>
+                    }
+                    else
+                    {
+                        <div class="mb-2" style="height:15px;"></div>
+                    }
+                    <div class="hsk-badge mt-auto">HSK @c.HskLevel</div>
+                </div>
+            }
+        }
+    </div>
+    <div id="pagination" class="d-flex justify-content-center align-items-center gap-3 mt-4 mb-4">
+        @{
+            int currentPage = ViewBag.CurrentPage ?? 1;
+            int totalPages = ViewBag.TotalPages ?? 1;
+            string searchParam = !string.IsNullOrEmpty(ViewBag.Search) ? $"&search={ViewBag.Search}" : "";
+            string hskParam = (ViewBag.SelectedHsk != null && ViewBag.SelectedHsk != "all") ? $"&hsk={ViewBag.SelectedHsk}" : "";
+        }
+        @if (totalPages > 1)
+        {
+            @if (currentPage > 1)
+            {
+                <a href="?page=@(currentPage - 1)@searchParam@hskParam" class="btn btn-sm btn-light border fw-bold">❮ Trang trước</a>
+            }
+            else
+            {
+                <button class="btn btn-sm btn-light border fw-bold" disabled>❮ Trang trước</button>
+            }
+
+            <span class="px-3 py-1 bg-white border rounded small fw-bold text-secondary">Trang @currentPage / @totalPages</span>
+
+            @if (currentPage < totalPages)
+            {
+                <a href="?page=@(currentPage + 1)@searchParam@hskParam" class="btn btn-sm btn-light border fw-bold">Trang sau ❯</a>
+            }
+            else
+            {
+                <button class="btn btn-sm btn-light border fw-bold" disabled>Trang sau ❯</button>
+            }
+        }
+    </div>
+</div>
+
+<!-- Character Detail Modal -->
+<div class="modal fade" id="charModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="border-radius: 24px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.1); background: #f8fafc;">
+      <div class="modal-header border-0 pb-0">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4 pt-0">
+        
+        <div class="row">
+            <!-- Left Col: Animation -->
+            <div class="col-md-5 d-flex flex-column align-items-center justify-content-center">
+                <div id="character-target-div" style="width: 250px; height: 250px; background: white; border-radius: 24px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; position: relative;">
+                    <!-- Grid background for hanzi -->
+                    <svg width="250" height="250" style="position: absolute; top:0; left:0; pointer-events: none;">
+                        <line x1="0" y1="0" x2="250" y2="250" stroke="#f1f5f9" stroke-width="2" />
+                        <line x1="250" y1="0" x2="0" y2="250" stroke="#f1f5f9" stroke-width="2" />
+                        <line x1="125" y1="0" x2="125" y2="250" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5,5" />
+                        <line x1="0" y1="125" x2="250" y2="125" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5,5" />
+                    </svg>
+                </div>
+                <div class="d-flex gap-2 mt-3">
+                    <button class="btn btn-outline-primary fw-bold" onclick="writer.animateCharacter()"><i class="fas fa-play"></i> Viết mẫu</button>
+                    <button class="btn btn-outline-secondary fw-bold" onclick="writer.quiz()"><i class="fas fa-pencil-alt"></i> Luyện viết</button>
+                </div>
+            </div>
+
+            <!-- Right Col: Details -->
+            <div class="col-md-7 mt-4 mt-md-0">
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <h2 id="detail-hanzi" class="fw-bold mb-0 text-dark" style="font-size: 48px;"></h2>
+                    <div class="d-flex flex-column">
+                        <span id="detail-pinyin" class="text-success fw-bold" style="font-size: 24px; font-family: monospace;"></span>
+                        <span id="detail-meaning" class="text-secondary fw-bold" style="font-size: 16px;"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    <span class="badge bg-light text-dark border p-2 px-3 rounded-pill"><i class="fas fa-puzzle-piece text-warning me-1"></i> Bộ thủ: <span id="detail-radical" class="fw-bold"></span></span>
+                    <span class="badge bg-light text-dark border p-2 px-3 rounded-pill"><i class="fas fa-pen text-primary me-1"></i> Số nét: <span id="detail-strokes" class="fw-bold"></span></span>
+                </div>
+
+                <!-- Compounds -->
+                <h5 class="fw-bold text-dark mb-2"><i class="fas fa-link text-info me-2"></i> Từ ghép</h5>
+                <div id="detail-compounds" class="mb-4 text-secondary" style="font-size: 15px;">
+                    <div class="spinner-border spinner-border-sm text-secondary" role="status"></div> Đang tải...
+                </div>
+
+                <!-- AI Story -->
+                <div class="p-3" style="background: rgba(16,185,129,0.1); border-radius: 16px; border-left: 4px solid #10b981;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="fw-bold text-success mb-0"><i class="fas fa-magic me-2"></i> AI Hanzi Story</h5>
+                        <button class="btn btn-sm btn-success fw-bold" onclick="generateStory()" id="btn-ai-story">Mẹo nhớ chữ</button>
+                    </div>
+                    <p id="detail-story" class="mb-0 text-dark" style="font-size: 14px; line-height: 1.6;">
+                        Bấm nút để AI phân tích chiết tự và tạo câu chuyện giúp bạn nhớ chữ này dễ dàng hơn!
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Styles {
+    <style>
+        .character-card {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .character-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+    </style>
+}
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+<script>
+    let writer = null;
+    let currentChar = '';
+
+    function showCharModal(hanzi) {
+        currentChar = hanzi;
+        document.getElementById('detail-hanzi').innerText = hanzi;
+        document.getElementById('detail-pinyin').innerText = '...';
+        document.getElementById('detail-meaning').innerText = '...';
+        document.getElementById('detail-radical').innerText = '...';
+        document.getElementById('detail-strokes').innerText = '...';
+        document.getElementById('detail-compounds').innerHTML = '<div class="spinner-border spinner-border-sm text-secondary" role="status"></div> Đang tải...';
+        document.getElementById('detail-story').innerText = 'Bấm nút để AI phân tích chiết tự và tạo câu chuyện giúp bạn nhớ chữ này dễ dàng hơn!';
+        document.getElementById('btn-ai-story').disabled = false;
+
+        var modal = new bootstrap.Modal(document.getElementById('charModal'));
+        modal.show();
+
+        document.getElementById('character-target-div').innerHTML = `
+            <svg width="250" height="250" style="position: absolute; top:0; left:0; pointer-events: none;">
+                <line x1="0" y1="0" x2="250" y2="250" stroke="#f1f5f9" stroke-width="2" />
+                <line x1="250" y1="0" x2="0" y2="250" stroke="#f1f5f9" stroke-width="2" />
+                <line x1="125" y1="0" x2="125" y2="250" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5,5" />
+                <line x1="0" y1="125" x2="250" y2="125" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5,5" />
+            </svg>
+        `;
+        writer = HanziWriter.create('character-target-div', hanzi, {
+          width: 250,
+          height: 250,
+          padding: 20,
+          strokeAnimationSpeed: 1,
+          delayBetweenStrokes: 50,
+          showCharacter: false,
+          strokeColor: '#1e293b',
+          drawingColor: '#3b82f6'
+        });
+        writer.animateCharacter();
+
+        fetch(`/Character/Detail?hanzi=${hanzi}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('detail-pinyin').innerText = data.pinyin || '';
+                
+                let meaning = data.meaning;
+                if (typeof vietPatch !== 'undefined' && vietPatch && vietPatch[data.hanzi]) {
+                    meaning = vietPatch[data.hanzi];
+                }
+                
+                document.getElementById('detail-meaning').innerText = meaning || '';
+                document.getElementById('detail-radical').innerText = data.radical || '';
+                document.getElementById('detail-strokes').innerText = data.strokes || '';
+                
+                if (data.compounds && data.compounds.length > 0) {
+                    let html = '<div class="d-flex flex-wrap gap-2">';
+                    data.compounds.forEach(c => {
+                        let cMeaning = c.meaning;
+                        if (typeof vietPatch !== 'undefined' && vietPatch && vietPatch[c.word]) cMeaning = vietPatch[c.word];
+                        html += `<div class="bg-white border rounded p-2 px-3 shadow-sm">
+                                    <span class="fw-bold text-dark fs-5">${c.word}</span> 
+                                    <span class="text-success small">${c.pinyin}</span> 
+                                    <span class="text-secondary small ms-1">- ${cMeaning || ''}</span>
+                                 </div>`;
+                    });
+                    html += '</div>';
+                    document.getElementById('detail-compounds').innerHTML = html;
+                } else {
+                    document.getElementById('detail-compounds').innerHTML = '<p>Đang cập nhật ví dụ từ ghép.</p>';
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('detail-compounds').innerHTML = '<p class="text-danger">Lỗi khi tải dữ liệu.</p>';
+            });
+    }
+
+    function generateStory() {
+        const btn = document.getElementById('btn-ai-story');
+        const storyDiv = document.getElementById('detail-story');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang hỏi AI...';
+        
+        fetch('/Ai/GenerateHanziStory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ character: currentChar })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                storyDiv.innerHTML = data.story;
+            } else {
+                storyDiv.innerHTML = '<span class="text-danger">AI đang bận, xin vui lòng thử lại sau.</span>';
+            }
+        })
+        .catch(err => {
+            storyDiv.innerHTML = '<span class="text-danger">Không thể kết nối đến AI.</span>';
+        })
+        .finally(() => {
+            btn.innerHTML = 'Thử câu chuyện khác';
+            btn.disabled = false;
+        });
+    }
+</script>
+}

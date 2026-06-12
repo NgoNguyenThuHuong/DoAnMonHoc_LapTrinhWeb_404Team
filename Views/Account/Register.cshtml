@@ -1,0 +1,67 @@
+@model LingoToneMVC.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Đăng ký";
+    Layout = null; // Don't use the main layout for auth pages
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - LingoTone AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" />
+</head>
+<body class="auth-page">
+    <div class="glass-card auth-card">
+        <div class="auth-logo">
+            <div class="auth-logo-icon"><span>L</span></div>
+            <h1 class="auth-title m-0 ms-3">LingoTone AI</h1>
+        </div>
+        <h2 class="auth-title" style="font-size:24px;">Đăng ký</h2>
+        <p class="auth-subtitle">Bắt đầu hành trình chinh phục tiếng Trung 🚀</p>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert-error">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                @Html.ValidationSummary(true, "")
+            </div>
+        }
+
+        <form asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+            <div class="form-group">
+                <label asp-for="DisplayName" class="form-label">Tên hiển thị</label>
+                <input asp-for="DisplayName" class="form-control" placeholder="Nguyễn Văn A" />
+                <span asp-validation-for="DisplayName" class="field-validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Email" class="form-label">Email</label>
+                <input asp-for="Email" class="form-control" placeholder="name@example.com" />
+                <span asp-validation-for="Email" class="field-validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password" class="form-label">Mật khẩu</label>
+                <input asp-for="Password" class="form-control" placeholder="Ít nhất 6 ký tự" />
+                <span asp-validation-for="Password" class="field-validation-error"></span>
+            </div>
+
+            <div class="form-group mb-4">
+                <label asp-for="ConfirmPassword" class="form-label">Xác nhận mật khẩu</label>
+                <input asp-for="ConfirmPassword" class="form-control" placeholder="••••••••" />
+                <span asp-validation-for="ConfirmPassword" class="field-validation-error"></span>
+            </div>
+
+            <button type="submit" class="auth-submit-btn">Tạo tài khoản</button>
+        </form>
+
+        <div class="auth-link">
+            Đã có tài khoản? <a href="/Account/Login">Đăng nhập</a>
+        </div>
+    </div>
+</body>
+</html>

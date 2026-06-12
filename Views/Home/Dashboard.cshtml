@@ -1,0 +1,372 @@
+@model LingoToneMVC.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    ViewBag.UserDisplayName = Model.DisplayName;
+    ViewBag.UserXP = Model.XP;
+    ViewBag.UserLevel = Model.Level;
+    ViewBag.UserStreak = Model.Streak;
+}
+
+<div class="row g-4 animate-fade-in">
+    <!-- LEFT + CENTER WRAPPER (9 cols) -->
+    <div class="col-lg-9 d-flex flex-column gap-4">
+        
+        <div class="row g-4">
+            <!-- LEFT COLUMN -->
+            <div class="col-lg-4 d-flex flex-column gap-4">
+                <!-- Welcome Hero Card -->
+                <div class="hero-card" style="background: linear-gradient(135deg, #2dd4bf, #3b82f6); border-radius: 20px; padding: 28px; color: white;">
+                    <div style="position:relative;z-index:1;">
+                        <p class="welcome-text mb-1" style="font-size: 14px; opacity: 0.9;">Xin chào,</p>
+                        <h2 class="fw-bold mb-3" style="font-size: 32px;">@Model.DisplayName! 👋</h2>
+                        <p class="quote mb-4" style="font-size: 13px; opacity: 0.9;">Hôm nay là một ngày tuyệt vời để học tiếng Trung!</p>
+                        <a href="/Lesson" class="btn fw-bold px-4 py-2" style="background: white; color: #1e293b; border-radius: 999px; font-size: 14px; text-decoration: none;">Tiếp tục học →</a>
+                    </div>
+                </div>
+
+                <!-- Stats Card -->
+                <div class="glass-card card" style="border-radius: 24px;">
+                    <h3 class="fw-bold mb-4" style="font-size:16px;">
+                        <i class="fa-solid fa-chart-simple text-primary me-2"></i>Thống kê học tập
+                    </h3>
+                    <div class="stats-grid">
+                        <div class="stat-item d-flex flex-column justify-content-between p-3" style="background: rgba(245,158,11,0.05); border-radius: 16px;">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fa-solid fa-fire text-danger"></i>
+                                <span style="font-size: 12px; font-weight: 600; color: #1e293b;">Streak</span>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 24px;">@Model.Streak</div>
+                                <div style="font-size: 11px; color: #64748b;">ngày</div>
+                            </div>
+                        </div>
+                        <div class="stat-item d-flex flex-column justify-content-between p-3" style="background: rgba(59,130,246,0.05); border-radius: 16px;">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fa-solid fa-star text-warning"></i>
+                                <span style="font-size: 12px; font-weight: 600; color: #1e293b;">Level</span>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 24px;">@Model.Level</div>
+                                <div style="font-size: 11px; color: #64748b;">Cấp độ</div>
+                            </div>
+                        </div>
+                        <div class="stat-item d-flex flex-column justify-content-between p-3" style="background: rgba(16,185,129,0.05); border-radius: 16px;">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fa-solid fa-book-open text-success"></i>
+                                <span style="font-size: 12px; font-weight: 600; color: #1e293b;">Từ đã học</span>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 24px;">@Model.WordsLearned</div>
+                                <div style="font-size: 11px; color: #64748b;">từ</div>
+                            </div>
+                        </div>
+                        <div class="stat-item d-flex flex-column justify-content-between p-3" style="background: rgba(168,85,247,0.05); border-radius: 16px;">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fa-solid fa-gem text-purple" style="color: #a855f7;"></i>
+                                <span style="font-size: 12px; font-weight: 600; color: #1e293b;">XP</span>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 24px;">@Model.XP</div>
+                                <div style="font-size: 11px; color: #64748b;">điểm</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CENTER COLUMN -->
+            <div class="col-lg-8 d-flex flex-column gap-4">
+                <!-- Current Lesson Card -->
+                <div class="glass-card card edtech-card p-4" style="border: 1px solid rgba(0,0,0,0.05); border-radius: 24px;">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div style="width: 48px; height: 48px; background: rgba(59,130,246,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-layer-group text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill fw-bold mb-1" style="font-size: 11px;">Boya Sơ cấp 1</div>
+                            <div class="fw-bold text-secondary" style="font-size: 12px;">Bài học hiện tại</div>
+                        </div>
+                    </div>
+                    
+                    @if (Model.CurrentLesson != null)
+                    {
+                        <h3 class="fw-bold mb-2" style="font-size:22px; color: #1e293b;">@Model.CurrentLesson.Title</h3>
+                        <p class="text-secondary mb-3" style="font-size:14px;">@Model.CurrentLesson.Description</p>
+                        
+                        <div class="d-flex gap-4 mb-4 text-secondary" style="font-size: 13px; font-weight: 500;">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-bars-staggered text-success"></i> @(Model.CurrentLesson.Vocabularies?.Count ?? 0) từ mới
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-book-bookmark text-warning"></i> @(Model.CurrentLesson.GrammarPoints?.Count ?? 0) ngữ pháp
+                            </div>
+                        </div>
+                    }
+                    
+                    <div class="progress-bar-wrapper mb-4">
+                        <div class="d-flex justify-content-between align-items-end mb-2">
+                            <span class="text-dark fw-bold" style="font-size: 13px;">Tiến độ khóa học</span>
+                            <span class="text-primary fw-bold" style="font-size: 14px;">@Math.Floor(Model.CourseProgressPercent)%</span>
+                        </div>
+                        <div class="progress-track" style="background: rgba(0,0,0,0.05); height: 8px; border-radius: 4px; overflow: hidden;">
+                            <div class="progress-fill" style="width:@Math.Floor(Model.CourseProgressPercent)%; background: linear-gradient(90deg, #2dd4bf, #3b82f6); height: 100%; border-radius: 4px;"></div>
+                        </div>
+                    </div>
+                    <a href="/Lesson/Detail/@Model.CurrentLesson?.Id" class="btn btn-primary w-100 fw-bold py-3" style="background: linear-gradient(135deg, #10B981, #3B82F6); border:none; border-radius: 14px; font-size: 15px;">Học bài →</a>
+                </div>
+                
+                <!-- AI Features Sub-grid -->
+                <div class="row g-4 flex-grow-1">
+                    <!-- AI Career Chinese -->
+                    <div class="col-lg-7 d-flex">
+                        <div id="career-chinese-widget" class="glass-card card edtech-card p-4 w-100 d-flex flex-column" style="border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 24px; display: none; background: linear-gradient(180deg, rgba(139, 92, 246, 0.05) 0%, rgba(255, 255, 255, 0) 100%);">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #8B5CF6, #3B82F6); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                        <i id="career-icon" class="fa-solid fa-briefcase text-white fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="badge px-2 py-1 rounded-pill fw-bold mb-1 d-inline-block" style="font-size: 10px; background: rgba(139, 92, 246, 0.1); color: #8B5CF6;">✨ AI Career Chinese</div>
+                                        <div class="fw-bold text-dark" style="font-size: 14px;" id="career-title">Lộ trình chuyên ngành</div>
+                                    </div>
+                                </div>
+                                <button onclick="window.location.href='/Onboarding'" class="btn btn-light btn-sm text-secondary fw-bold rounded-pill px-3" style="font-size: 11px;">Đổi ngành</button>
+                            </div>
+                            
+                            <p class="text-secondary mb-3" style="font-size: 12px;">Từ vựng AI gợi ý cho ngành của bạn hôm nay:</p>
+                            
+                            <!-- HORIZONTAL WORD LIST -->
+                            <div id="career-words-container" class="d-flex gap-2 mb-4 overflow-auto pb-2 flex-grow-1">
+                                <!-- JS will populate -->
+                            </div>
+
+                            <a id="career-roleplay-btn" href="/Roleplay" class="btn mt-auto w-100 fw-bold py-2 d-flex align-items-center justify-content-center gap-2" style="background: rgba(139, 92, 246, 0.1); color: #8B5CF6; border-radius: 12px; font-size: 13px; text-decoration: none;">
+                                <i class="fa-solid fa-comments"></i> Luyện Roleplay chuyên ngành →
+                            </a>
+                        </div>
+                    </div>
+                    <!-- AI Tools Vertical Stack -->
+                    <div class="col-lg-5 d-flex flex-column gap-4">
+                        <!-- AI Writing Coach Card -->
+                        <div class="glass-card card p-4 w-100 flex-grow-1" style="border-radius: 24px; border: 1px solid rgba(168,85,247,0.2); background: linear-gradient(135deg, rgba(168,85,247,0.05), transparent);">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <div style="width: 32px; height: 32px; background: #a855f7; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa-solid fa-pen-nib text-white"></i>
+                                </div>
+                                <h4 class="fw-bold m-0" style="font-size: 14px; color: #1e293b;">AI Writing Coach</h4>
+                                <span class="badge rounded-pill" style="background: rgba(168,85,247,0.1); color: #a855f7; font-size: 10px;">Mới</span>
+                            </div>
+                            <p class="text-secondary mb-3" style="font-size: 11px; line-height: 1.4;">AI chấm điểm và sửa lỗi bài viết tiếng Trung của bạn</p>
+                            <a href="/Writing" class="btn mt-auto w-100 fw-bold py-2" style="border: 1px solid rgba(168,85,247,0.3); color: #a855f7; background: white; border-radius: 999px; font-size: 12px;">Mở viết bài ngay →</a>
+                        </div>
+                        
+                        <!-- AI HSK Estimator Card -->
+                        <div class="glass-card card p-4 w-100 flex-grow-1" style="border-radius: 24px; border: 1px solid rgba(16,185,129,0.2); background: linear-gradient(135deg, rgba(16,185,129,0.05), transparent);">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <div style="width: 32px; height: 32px; background: #10b981; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa-solid fa-chart-pie text-white"></i>
+                                </div>
+                                <h4 class="fw-bold m-0" style="font-size: 14px; color: #1e293b;">AI HSK Estimator</h4>
+                                <span class="badge rounded-pill" style="background: rgba(16,185,129,0.1); color: #10b981; font-size: 10px;">Mới</span>
+                            </div>
+                            <p class="text-secondary mb-3" style="font-size: 11px; line-height: 1.4;">Nhận đánh giá trình độ HSK nhanh chóng từ AI</p>
+                            <a href="/Hsk" class="btn mt-auto w-100 fw-bold py-2" style="border: 1px solid rgba(16,185,129,0.3); color: #10b981; background: white; border-radius: 999px; font-size: 12px;">Kiểm tra trình độ →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Smart Tools (Replaces Quick Actions Grid) -->
+        <div class="d-flex flex-column mt-2">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="fa-solid fa-bolt text-warning fs-5"></i>
+                <h3 class="fw-bold m-0" style="font-size:16px;">AI Smart Tools</h3>
+            </div>
+            <div class="row g-3">
+                <!-- Card 1 -->
+                <div class="col-md-3">
+                    <div class="glass-card card h-100 p-3" style="border-radius: 20px; border: 1px solid rgba(16,185,129,0.1);">
+                        <div class="d-flex align-items-start gap-3 mb-2">
+                            <div style="width: 40px; height: 40px; background: rgba(16,185,129,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fa-solid fa-check-to-slot text-success fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold m-0" style="font-size: 13px; color: #1e293b;">AI Check Ngữ pháp</h5>
+                                <p class="text-secondary m-0 mt-1" style="font-size: 11px; line-height: 1.3;">Kiểm tra và sửa lỗi ngữ pháp câu</p>
+                            </div>
+                        </div>
+                        <a href="/Grammar" class="btn btn-sm mt-auto w-100 fw-bold py-2" style="border: 1px solid rgba(16,185,129,0.2); color: #10b981; background: transparent; border-radius: 10px; font-size: 12px;">Kiểm tra ngay</a>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div class="col-md-3">
+                    <div class="glass-card card h-100 p-3" style="border-radius: 20px; border: 1px solid rgba(59,130,246,0.1);">
+                        <div class="d-flex align-items-start gap-3 mb-2">
+                            <div style="width: 40px; height: 40px; background: rgba(59,130,246,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fa-solid fa-layer-group text-primary fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold m-0" style="font-size: 13px; color: #1e293b;">AI Tạo Quiz thông minh</h5>
+                                <p class="text-secondary m-0 mt-1" style="font-size: 11px; line-height: 1.3;">Tạo bài quiz theo chủ đề</p>
+                            </div>
+                        </div>
+                        <a href="/Quiz" class="btn btn-sm mt-auto w-100 fw-bold py-2" style="border: 1px solid rgba(59,130,246,0.2); color: #3b82f6; background: transparent; border-radius: 10px; font-size: 12px;">Tạo quiz</a>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div class="col-md-3">
+                    <div class="glass-card card h-100 p-3" style="border-radius: 20px; border: 1px solid rgba(245,158,11,0.1);">
+                        <div class="d-flex align-items-start gap-3 mb-2">
+                            <div style="width: 40px; height: 40px; background: rgba(245,158,11,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fa-solid fa-puzzle-piece text-warning fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold m-0" style="font-size: 13px; color: #1e293b;">AI Phân tích Hán tự</h5>
+                                <p class="text-secondary m-0 mt-1" style="font-size: 11px; line-height: 1.3;">Giải nghĩa từ nguyên & kể chuyện</p>
+                            </div>
+                        </div>
+                        <a href="/Character" class="btn btn-sm mt-auto w-100 fw-bold py-2" style="border: 1px solid rgba(245,158,11,0.2); color: #f59e0b; background: transparent; border-radius: 10px; font-size: 12px;">Phân tích ngay</a>
+                    </div>
+                </div>
+                <!-- Card 4 -->
+                <div class="col-md-3">
+                    <div class="glass-card card h-100 p-3" style="border-radius: 20px; border: 1px solid rgba(168,85,247,0.1);">
+                        <div class="d-flex align-items-start gap-3 mb-2">
+                            <div style="width: 40px; height: 40px; background: rgba(168,85,247,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fa-solid fa-microphone text-purple fs-5" style="color: #a855f7;"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold m-0" style="font-size: 13px; color: #1e293b;">AI Luyện nói</h5>
+                                <p class="text-secondary m-0 mt-1" style="font-size: 11px; line-height: 1.3;">AI chấm điểm phát âm của bạn</p>
+                            </div>
+                        </div>
+                        <a href="/Pronunciation" class="btn btn-sm mt-auto w-100 fw-bold py-2" style="border: 1px solid rgba(168,85,247,0.2); color: #a855f7; background: transparent; border-radius: 10px; font-size: 12px;">Luyện nói</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN (3/12) -->
+    <div class="col-lg-3 d-flex flex-column gap-4">
+        <!-- Daily Missions Card -->
+        <div class="glass-card card" style="border-radius: 24px; padding: 24px;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold m-0 d-flex align-items-center gap-2" style="font-size:14px;">
+                    <i class="fa-solid fa-bullseye text-danger fs-6"></i>Nhiệm vụ hôm nay
+                </h3>
+                <span class="text-secondary fw-bold" style="font-size:12px;">@Model.DailyMissions.Count(m => m.IsCompleted)/@Model.DailyMissions.Count</span>
+            </div>
+            <div id="missions-list" class="d-flex flex-column gap-3">
+                @foreach (var mission in Model.DailyMissions)
+                {
+                    <div class="mission-item d-flex align-items-center gap-3">
+                        <div class="mission-status">
+                            @if (mission.IsCompleted)
+                            {
+                                <div style="width: 20px; height: 20px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa-solid fa-check" style="font-size:10px;"></i>
+                                </div>
+                            }
+                            else
+                            {
+                                <div style="width: 20px; height: 20px; border: 2px solid rgba(0,0,0,0.1); border-radius: 50%;"></div>
+                            }
+                        </div>
+
+                        <div class="mission-content flex-grow-1">
+                            <div class="mission-title" style="font-size: 13px; font-weight: @(mission.IsCompleted ? "700" : "500"); color: @(mission.IsCompleted ? "#10b981" : "#1e293b");">@mission.Title</div>
+                            <div class="mission-progress" style="font-size: 11px; color: #94a3b8;">
+                                @mission.CurrentValue/@mission.TargetValue
+                            </div>
+                        </div>
+
+                        <div class="mission-xp fw-bold" style="font-size: 12px; color: @(mission.IsCompleted ? "#10b981" : "#f59e0b");">
+                            +@mission.XpReward XP @(mission.IsCompleted ? "✓" : "")
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="glass-card card" style="border-radius: 24px; padding: 24px;">
+            <h3 class="fw-bold mb-4 d-flex align-items-center gap-2" style="font-size:14px;">
+                <i class="fa-solid fa-flag text-danger fs-6"></i>Hoạt động gần đây
+            </h3>
+            <div class="d-flex flex-column gap-3 mb-4">
+                @if (Model.RecentProgresses.Any())
+                {
+                    @foreach (var p in Model.RecentProgresses)
+                    {
+                        <div class="d-flex gap-3">
+                            <div style="width: 6px; height: 6px; background: #3b82f6; border-radius: 50%; margin-top: 6px;"></div>
+                            <div>
+                                <p class="text-dark fw-bold mb-1" style="font-size: 12px;">Hoàn thành @p.Lesson?.Title</p>
+                                <p class="text-secondary mb-0" style="font-size: 10px;">@p.CompletedAt?.ToString("dd/MM/yyyy HH:mm")</p>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="d-flex gap-3">
+                        <div style="width: 6px; height: 6px; background: #10b981; border-radius: 50%; margin-top: 6px;"></div>
+                        <div>
+                            <p class="text-dark fw-bold mb-1" style="font-size: 12px;">Chào mừng đến với LingoTone! 🎉</p>
+                            <p class="text-secondary mb-0" style="font-size: 10px;">Hôm nay</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <div style="width: 6px; height: 6px; background: #3b82f6; border-radius: 50%; margin-top: 6px;"></div>
+                        <div>
+                            <p class="text-dark fw-bold mb-1" style="font-size: 12px;">Bắt đầu hành trình học tiếng Trung</p>
+                            <p class="text-secondary mb-0" style="font-size: 10px;">Hôm nay</p>
+                        </div>
+                    </div>
+                }
+            </div>
+            <a href="#" class="btn btn-light w-100 fw-bold" style="background: rgba(59,130,246,0.05); color: #3b82f6; border-radius: 12px; font-size: 12px; border: none; padding: 10px;">Xem tất cả hoạt động →</a>
+        </div>
+
+        <!-- XP Progress to Next Level -->
+        <div class="glass-card card" style="border-radius: 24px; padding: 24px;">
+            <h3 class="fw-bold mb-4 d-flex align-items-center gap-2" style="font-size:14px;">
+                <i class="fa-solid fa-medal text-warning fs-5"></i>Level @Model.Level
+            </h3>
+            @{
+                var xpInLevel = Model.XP % 500;
+                var xpPercent = xpInLevel * 100 / 500;
+            }
+            <div class="progress-bar-wrapper mb-3">
+                <div class="d-flex justify-content-between align-items-end mb-2">
+                    <span class="text-secondary fw-bold" style="font-size: 11px;">XP đến Level @(Model.Level + 1)</span>
+                    <span class="text-success fw-bold" style="font-size: 12px;">@xpInLevel/500</span>
+                </div>
+                <div class="progress-track" style="background: rgba(0,0,0,0.05); height: 6px; border-radius: 3px; overflow: hidden;">
+                    <div class="progress-fill" style="width:@xpPercent%; background: linear-gradient(90deg, #10b981, #3b82f6); height:100%; border-radius: 3px;"></div>
+                </div>
+            </div>
+            <p class="m-0 text-secondary" style="font-size:11px; font-weight: 500;">
+                Còn <strong class="text-dark">@(500 - xpInLevel) XP</strong> nữa để thăng cấp!
+            </p>
+        </div>
+
+        <!-- Mẹo học hôm nay (New) -->
+        <div class="card flex-grow-1" style="border-radius: 24px; background: #1e293b; color: white; border: none; padding: 24px; position: relative; overflow: hidden;">
+            <div style="position: absolute; right: -20px; bottom: -20px; opacity: 0.1; font-size: 100px;">
+                <i class="fa-solid fa-book"></i>
+            </div>
+            <div style="position: relative; z-index: 1;">
+                <h3 class="fw-bold mb-3 d-flex align-items-center gap-2" style="font-size: 15px;">
+                    <i class="fa-solid fa-lightbulb text-warning"></i>Mẹo học hôm nay
+                </h3>
+                <p style="font-size: 13px; line-height: 1.6; opacity: 0.9;">
+                    Học từ vựng theo chủ đề giúp bạn ghi nhớ lâu hơn 60%!
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,566 @@
+@model dynamic
+@{
+    ViewData["Title"] = "Pronunciation Studio";
+}
+
+<style>
+    .pronunciation-tabs {
+        display: flex;
+        gap: 2rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+    }
+    .pronunciation-tab {
+        padding: 0.5rem 0;
+        font-weight: 600;
+        color: #64748b;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: 0.2s;
+    }
+    .pronunciation-tab.active {
+        color: #10b981;
+        border-bottom-color: #10b981;
+    }
+    .word-card {
+        border-radius: 12px;
+        border: 1px solid rgba(0,0,0,0.05);
+        padding: 12px;
+        background: white;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 120px;
+    }
+    .word-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .word-card.active {
+        border-color: #10b981;
+        box-shadow: 0 4px 16px rgba(16,185,129,0.15);
+    }
+    .word-card .char { font-size: 20px; font-weight: bold; color: #1e293b; }
+    .word-card .pinyin { font-size: 13px; color: #64748b; margin-top: 4px; }
+    .word-card .meaning { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+    
+    .action-circle-btn {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        transition: 0.2s;
+        flex-direction: column;
+    }
+    .action-circle-btn.small {
+        width: 56px;
+        height: 56px;
+    }
+    .action-circle-btn.btn-listen, .action-circle-btn.btn-replay {
+        background: rgba(59,130,246,0.1);
+        color: #3b82f6;
+    }
+    .action-circle-btn.btn-record {
+        background: #10b981;
+        color: white;
+        box-shadow: 0 8px 24px rgba(16,185,129,0.3);
+        width: 72px;
+        height: 72px;
+    }
+    
+    .progress-row { margin-bottom: 12px; }
+    .progress-label { font-size: 12px; color: #64748b; display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .progress-bar-custom {
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        border-radius: 3px;
+    }
+</style>
+
+<!-- Load Chart.js for Radar Chart -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="animate-fade-in">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #10B981, #2dd4bf); border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(16,185,129,0.2);">
+                <i class="fa-solid fa-microphone text-white fs-4"></i>
+            </div>
+            <div>
+                <h2 class="fw-bold m-0" style="font-size: 24px; color: #1e293b;">Pronunciation Studio</h2>
+                <p class="text-secondary m-0" style="font-size: 14px;">Luyện phát âm chuẩn như người bản xứ</p>
+            </div>
+        </div>
+        <button class="btn btn-light rounded-pill px-4 fw-bold" style="border: 1px solid rgba(0,0,0,0.05);">
+            <i class="fa-regular fa-circle-question me-2"></i> Hướng dẫn
+        </button>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Vocabulary List -->
+        <div class="col-lg-7">
+            <div class="glass-card card h-100" style="border-radius: 24px; padding: 24px;">
+                
+                <div class="pronunciation-tabs" id="main-tabs">
+                    <div class="pronunciation-tab active" onclick="switchTab(this, 'Từ vựng')">Từ vựng</div>
+                    <div class="pronunciation-tab" onclick="switchTab(this, 'Cụm từ')">Cụm từ</div>
+                    <div class="pronunciation-tab" onclick="switchTab(this, 'Câu')">Câu</div>
+                    <div class="pronunciation-tab" onclick="switchTab(this, 'Hội thoại')">Hội thoại</div>
+                </div>
+
+                <!-- Filters -->
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    <button class="btn btn-sm" style="background: rgba(16,185,129,0.1); color: #10b981; border-radius: 8px; font-weight: 600;">Tất cả</button>
+                    <select class="form-select form-select-sm" style="width: auto; border-radius: 8px; font-weight: 500; color: #4b5563;">
+                        <option>HSK 1</option>
+                    </select>
+                    <select class="form-select form-select-sm" style="width: auto; border-radius: 8px; font-weight: 500; color: #4b5563;">
+                        <option>Boya Sơ cấp 1</option>
+                    </select>
+                    <select class="form-select form-select-sm" style="width: auto; border-radius: 8px; font-weight: 500; color: #4b5563;">
+                        <option>Tất cả chủ đề</option>
+                    </select>
+                    <button class="btn btn-sm ms-auto" style="background: white; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; font-weight: 600;">
+                        <i class="fa-regular fa-star me-1 text-warning"></i> Yêu thích
+                    </button>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="position-relative flex-grow-1">
+                        <i class="fa-solid fa-magnifying-glass position-absolute text-secondary" style="top: 50%; left: 12px; transform: translateY(-50%); font-size: 12px;"></i>
+                        <input type="text" class="form-control form-control-sm border-0" placeholder="Tìm từ vựng..." style="background: rgba(0,0,0,0.03); border-radius: 8px; padding-left: 32px; height: 36px; font-size: 13px;">
+                    </div>
+                    <div class="text-secondary" style="font-size: 12px; font-weight: 500; white-space: nowrap;">Sắp xếp: <span class="text-dark fw-bold">A → Z</span> <i class="fa-solid fa-chevron-down ms-1" style="font-size: 10px;"></i></div>
+                    <div class="d-flex gap-1 text-secondary">
+                        <i class="fa-solid fa-table-cells text-success"></i>
+                        <i class="fa-solid fa-list ms-2 opacity-50"></i>
+                    </div>
+                </div>
+
+                <!-- Grid -->
+                <div class="row g-3" id="word-grid">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex align-items-center justify-content-between mt-4 border-top pt-3">
+                    <div class="text-secondary" style="font-size: 12px;">Hiển thị 1 - 16 của 320 từ</div>
+                    <div class="d-flex gap-2 align-items-center" style="font-size: 13px;">
+                        <button class="btn btn-sm btn-light p-0 d-flex align-items-center justify-content-center text-secondary" style="width: 28px; height: 28px; border-radius: 50%;"><i class="fa-solid fa-chevron-left" style="font-size: 10px;"></i></button>
+                        <div style="width: 28px; height: 28px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</div>
+                        <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: #4b5563;">2</div>
+                        <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: #4b5563;">3</div>
+                        <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: #4b5563;">4</div>
+                        <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: #4b5563;">5</div>
+                        <div class="text-secondary">...</div>
+                        <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: #4b5563;">20</div>
+                        <button class="btn btn-sm btn-light p-0 d-flex align-items-center justify-content-center text-secondary" style="width: 28px; height: 28px; border-radius: 50%;"><i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Detail & Record Area -->
+        <div class="col-lg-5">
+            <div class="glass-card card h-100" style="border-radius: 24px; padding: 24px;">
+                <div class="d-flex justify-content-between mb-4">
+                    <span class="badge" style="background: rgba(16,185,129,0.1); color: #10b981; font-weight: bold; border-radius: 999px; padding: 6px 16px;">Từ 1 / 320</span>
+                    <button class="btn btn-sm" style="background: rgba(139,92,246,0.1); color: #8b5cf6; font-weight: bold; border-radius: 999px; padding: 4px 12px; border: none;">
+                        <i class="fa-regular fa-star me-1"></i> Yêu thích
+                    </button>
+                </div>
+
+                <div class="text-center mb-5" id="active-word-display">
+                    <div class="fw-bold text-dark" style="font-size: 48px; line-height: 1.2;">你好</div>
+                    <div class="fw-bold text-success mt-2" style="font-size: 20px; font-family: monospace;">nǐ hǎo</div>
+                    <div class="text-secondary mt-1" style="font-size: 14px;">Xin chào</div>
+                </div>
+
+                <div class="d-flex justify-content-center align-items-center gap-4 mb-5">
+                    <div class="text-center">
+                        <button class="action-circle-btn small btn-listen mx-auto mb-2" onclick="speakCurrentWord()">
+                            <i class="fa-solid fa-headphones fs-5"></i>
+                        </button>
+                        <span class="text-primary fw-bold" style="font-size: 11px;">Nghe mẫu</span>
+                    </div>
+                    <div class="text-center">
+                        <button class="action-circle-btn btn-record mx-auto mb-2" id="record-btn" onclick="startVoiceRecognition()">
+                            <i class="fa-solid fa-microphone fs-3"></i>
+                        </button>
+                        <span class="text-dark fw-bold" style="font-size: 12px;">00:00</span>
+                    </div>
+                    <div class="text-center">
+                        <button class="action-circle-btn small btn-replay mx-auto mb-2" id="replay-btn" style="opacity: 0.5; pointer-events: none;" onclick="replayVoice()">
+                            <i class="fa-solid fa-play fs-5"></i>
+                        </button>
+                        <span class="text-secondary fw-bold" style="font-size: 11px;">Phát lại</span>
+                    </div>
+                </div>
+
+                <!-- Results Box -->
+                <div id="results-box" style="display: none;">
+                    <div class="p-3 mb-3" style="border: 1px solid rgba(0,0,0,0.05); border-radius: 16px; background: white; position: relative;">
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                            <span class="fw-bold" style="font-size: 14px;">Kết quả phát âm</span>
+                            <span class="badge bg-success" style="background: linear-gradient(135deg, #10b981, #34d399) !important;">Tuyệt vời! 🎉</span>
+                        </div>
+                        
+                        <div class="row align-items-center">
+                            <div class="col-7">
+                                <div class="progress-row">
+                                    <div class="progress-label"><span>Độ chính xác</span><span class="fw-bold text-success" id="res-acc">92%</span></div>
+                                    <div class="progress-bar-custom"><div class="progress-bar-fill bg-success" style="width: 92%;" id="bar-acc"></div></div>
+                                </div>
+                                <div class="progress-row">
+                                    <div class="progress-label"><span>Thanh điệu</span><span class="fw-bold text-success" id="res-tone">88%</span></div>
+                                    <div class="progress-bar-custom"><div class="progress-bar-fill bg-success" style="width: 88%;" id="bar-tone"></div></div>
+                                </div>
+                                <div class="progress-row">
+                                    <div class="progress-label"><span>Độ lưu loát</span><span class="fw-bold text-success" id="res-fluency">95%</span></div>
+                                    <div class="progress-bar-custom"><div class="progress-bar-fill bg-success" style="width: 95%;" id="bar-fluency"></div></div>
+                                </div>
+                                <div class="progress-row mt-3">
+                                    <div class="progress-label"><span class="text-dark fw-bold">Tổng điểm</span><span class="fw-bold" style="color: #6d28d9;" id="res-total">91/100</span></div>
+                                    <div class="progress-bar-custom"><div class="progress-bar-fill" style="width: 91%; background: #8b5cf6;" id="bar-total"></div></div>
+                                </div>
+                            </div>
+                            <div class="col-5">
+                                <canvas id="radarChart" width="120" height="120"></canvas>
+                                <!-- Score overlay in center of radar chart -->
+                                <div id="radar-score" class="fw-bold text-success" style="position: absolute; top: 58%; right: 19%; transform: translate(-50%, -50%); font-size: 16px;">91</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 mb-2" style="background: rgba(59,130,246,0.05); border-radius: 12px;">
+                        <div class="d-flex gap-2">
+                            <div style="width: 24px; height: 24px; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fa-solid fa-robot text-white" style="font-size: 10px;"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 13px;">Nhận xét của AI</div>
+                                <div class="text-secondary mt-1" style="font-size: 12px; line-height: 1.4;" id="ai-comment">Phát âm rất tốt! Thanh điệu chuẩn ở mức 88%. Bạn nên chú ý hạ thấp giọng ở thanh 3 thêm một chút để hoàn hảo hơn.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 mb-4" style="border: 1px solid rgba(0,0,0,0.05); border-radius: 12px;">
+                        <div class="d-flex gap-2">
+                            <div style="width: 24px; height: 24px; background: rgba(0,0,0,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fa-solid fa-lightbulb text-primary" style="font-size: 10px;"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 13px;">Gợi ý cải thiện</div>
+                                <div class="text-secondary mt-1" style="font-size: 12px; line-height: 1.4;" id="ai-suggestion">Khi phát âm "hǎo", hãy hạ giọng xuống thấp hơn ở cuối âm.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-auto d-flex flex-column gap-2">
+                    <button class="btn fw-bold py-2 w-100" onclick="nextWord()" style="background: #10b981; color: white; border-radius: 12px;">
+                        Luyện từ tiếp theo &rarr;
+                    </button>
+                    <button class="btn fw-bold py-2 w-100" onclick="alert('Tính năng Danh sách từ vựng đã luyện đang được phát triển.')" style="background: white; border: 1px solid rgba(0,0,0,0.1); color: #4b5563; border-radius: 12px;">
+                        Xem tất cả từ đã luyện
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const mockDataSets = {
+        'Từ vựng': [
+            { c: '你好', p: 'nǐ hǎo', m: 'Xin chào', star: true },
+            { c: '谢谢', p: 'xiè xie', m: 'Cảm ơn', star: false },
+            { c: '再见', p: 'zài jiàn', m: 'Tạm biệt', star: false },
+            { c: '老师', p: 'lǎo shī', m: 'Giáo viên', star: false },
+            { c: '学生', p: 'xué shēng', m: 'Học sinh', star: false },
+            { c: '朋友', p: 'péng you', m: 'Bạn bè', star: false },
+            { c: '中国', p: 'zhōng guó', m: 'Trung Quốc', star: false },
+            { c: '越南', p: 'yuè nán', m: 'Việt Nam', star: false },
+            { c: '电脑', p: 'diàn nǎo', m: 'Máy tính', star: false },
+            { c: '手机', p: 'shǒu jī', m: 'Điện thoại', star: false },
+            { c: '学校', p: 'xué xiào', m: 'Trường học', star: false },
+            { c: '公司', p: 'gōng sī', m: 'Công ty', star: false },
+            { c: '是的', p: 'shì de', m: 'Đúng vậy', star: false },
+            { c: '好的', p: 'hǎo de', m: 'Tốt, được', star: false },
+            { c: '没关系', p: 'méi guān xi', m: 'Không sao đâu', star: false },
+            { c: '对不起', p: 'duì bu qǐ', m: 'Xin lỗi', star: false }
+        ],
+        'Cụm từ': [
+            { c: '你好吗', p: 'nǐ hǎo ma', m: 'Bạn khỏe không', star: true },
+            { c: '我很好', p: 'wǒ hěn hǎo', m: 'Tôi rất khỏe', star: false },
+            { c: '谢谢你', p: 'xiè xiè nǐ', m: 'Cảm ơn bạn', star: false },
+            { c: '不用谢', p: 'bú yòng xiè', m: 'Không có gì', star: false }
+        ],
+        'Câu': [
+            { c: '我是学生。', p: 'wǒ shì xué shēng.', m: 'Tôi là học sinh.', star: true },
+            { c: '你叫什么名字？', p: 'nǐ jiào shén me míng zì?', m: 'Bạn tên là gì?', star: false },
+            { c: '认识你很高兴。', p: 'rèn shi nǐ hěn gāo xìng.', m: 'Rất vui được gặp bạn.', star: false }
+        ],
+        'Hội thoại': [
+            { c: 'A: 你好！\nB: 你好！', p: 'A: nǐ hǎo!\nB: nǐ hǎo!', m: 'A: Xin chào!\nB: Xin chào!', star: true },
+            { c: 'A: 谢谢你！\nB: 不客气。', p: 'A: xiè xiè nǐ!\nB: bú kè qì.', m: 'A: Cảm ơn bạn!\nB: Đừng khách sáo.', star: false }
+        ]
+    };
+
+    let currentTab = 'Từ vựng';
+    let mockWords = mockDataSets[currentTab];
+    let currentWordIndex = 0;
+    let radarChartObj = null;
+    let recordedAudioBlob = null;
+    let mediaRecorder = null;
+
+    function switchTab(el, tabName) {
+        document.querySelectorAll('.pronunciation-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        currentTab = tabName;
+        mockWords = mockDataSets[currentTab];
+        currentWordIndex = 0;
+        renderGrid();
+        if(mockWords.length > 0) {
+            selectWord(0);
+        } else {
+            document.getElementById('active-word-display').innerHTML = '';
+            document.getElementById('word-grid').innerHTML = '<div class="text-secondary p-3">Chưa có dữ liệu</div>';
+        }
+    }
+
+    function renderGrid() {
+        const grid = document.getElementById('word-grid');
+        grid.innerHTML = mockWords.map((w, idx) => {
+            const isActive = idx === currentWordIndex;
+            return `
+                <div class="col-3">
+                    <div class="word-card ${isActive ? 'active' : ''}" onclick="selectWord(${idx})">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="char ${isActive ? 'text-success' : ''}">${w.c}</div>
+                                <div class="pinyin">${w.p}</div>
+                                <div class="meaning">${w.m}</div>
+                            </div>
+                            <i class="${w.star || isActive ? 'fa-solid text-success' : 'fa-regular text-secondary opacity-50'} fa-star" style="font-size: 12px;"></i>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <button class="btn btn-link p-0 text-success"><i class="fa-solid fa-volume-high" style="font-size: 12px;"></i></button>
+                            ${isActive ? '<button class="btn btn-link p-0 text-success"><i class="fa-solid fa-volume-low" style="font-size: 12px;"></i></button>' : '<button class="btn btn-link p-0 text-secondary opacity-50"><i class="fa-solid fa-volume-low" style="font-size: 12px;"></i></button>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function selectWord(idx) {
+        currentWordIndex = idx;
+        renderGrid();
+        
+        const w = mockWords[idx];
+        document.getElementById('active-word-display').innerHTML = `
+            <div class="fw-bold text-dark" style="font-size: 48px; line-height: 1.2;">${w.c}</div>
+            <div class="fw-bold text-success mt-2" style="font-size: 20px; font-family: monospace;">${w.p}</div>
+            <div class="text-secondary mt-1" style="font-size: 14px;">${w.m}</div>
+        `;
+        document.getElementById('results-box').style.display = 'none'; // hide results until recorded
+    }
+
+    function nextWord() {
+        if (currentWordIndex < mockWords.length - 1) {
+            selectWord(currentWordIndex + 1);
+        } else {
+            selectWord(0); // loop back
+        }
+    }
+
+    // Preload voices
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = function() {
+            window.speechSynthesis.getVoices();
+        };
+    }
+
+    function speakCurrentWord() {
+        if ('speechSynthesis' in window) {
+            const text = mockWords[currentWordIndex].c;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            utterance.rate = 0.8;
+            const voices = window.speechSynthesis.getVoices();
+            const zhVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('cmn'));
+            if (zhVoice) utterance.voice = zhVoice;
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    function startVoiceRecognition() {
+        const btn = document.getElementById('record-btn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin fs-4"></i>';
+        recordedAudioBlob = null;
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("Trình duyệt không hỗ trợ nhận diện giọng nói.");
+            btn.innerHTML = '<i class="fas fa-microphone fs-3"></i>';
+            return;
+        }
+
+        // Request microphone access for actual audio recording
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                const chunks = [];
+                
+                mediaRecorder.ondataavailable = e => {
+                    if (e.data.size > 0) chunks.push(e.data);
+                };
+                
+                mediaRecorder.onstop = () => {
+                    recordedAudioBlob = new Blob(chunks, { type: 'audio/webm' });
+                    stream.getTracks().forEach(track => track.stop());
+                };
+                
+                mediaRecorder.start();
+
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'zh-CN';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    if(mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+                    showResults();
+                };
+
+                recognition.onspeechend = function() {
+                    recognition.stop();
+                    if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+                };
+
+                recognition.onerror = function() {
+                    btn.innerHTML = '<i class="fas fa-microphone fs-3"></i>';
+                    alert('Lỗi thu âm!');
+                    if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+                };
+
+                recognition.start();
+
+            }).catch(err => {
+                console.error("Microphone error:", err);
+                alert("Vui lòng cấp quyền sử dụng Microphone.");
+                btn.innerHTML = '<i class="fas fa-microphone fs-3"></i>';
+            });
+        } else {
+            alert("Trình duyệt không hỗ trợ thu âm Audio.");
+            btn.innerHTML = '<i class="fas fa-microphone fs-3"></i>';
+        }
+    }
+
+    function showResults() {
+        const btn = document.getElementById('record-btn');
+        btn.innerHTML = '<i class="fas fa-microphone fs-3"></i>';
+        
+        document.getElementById('results-box').style.display = 'block';
+
+        const replayBtn = document.getElementById('replay-btn');
+        replayBtn.style.opacity = '1';
+        replayBtn.style.pointerEvents = 'auto';
+
+        // Mock data logic
+        const acc = Math.floor(Math.random() * 10) + 85;
+        const tone = Math.floor(Math.random() * 10) + 80;
+        const fluency = Math.floor(Math.random() * 10) + 88;
+        const total = Math.round((acc + tone + fluency) / 3);
+
+        document.getElementById('res-acc').innerText = acc + '%';
+        document.getElementById('bar-acc').style.width = acc + '%';
+        document.getElementById('res-tone').innerText = tone + '%';
+        document.getElementById('bar-tone').style.width = tone + '%';
+        document.getElementById('res-fluency').innerText = fluency + '%';
+        document.getElementById('bar-fluency').style.width = fluency + '%';
+        document.getElementById('res-total').innerText = total + '/100';
+        document.getElementById('bar-total').style.width = total + '%';
+
+        const pinyinTarget = mockWords[currentWordIndex].p;
+        document.getElementById('ai-comment').innerText = `Phát âm tốt! Thanh điệu chuẩn ở mức ${tone}%. Bạn nên chú ý luyện tập thêm để hoàn hảo hơn.`;
+        document.getElementById('ai-suggestion').innerText = `Khi phát âm "${pinyinTarget}", hãy chú ý khẩu hình miệng.`;
+
+        document.getElementById('radar-score').innerText = total;
+
+        drawRadarChart(acc, tone, fluency);
+    }
+
+    function drawRadarChart(acc, tone, fluency) {
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        if (radarChartObj) radarChartObj.destroy();
+        
+        radarChartObj = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['Chính xác', 'Lưu loát', 'Thanh điệu'],
+                datasets: [{
+                    data: [acc, fluency, tone],
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    borderColor: '#10b981',
+                    pointBackgroundColor: '#10b981',
+                    borderWidth: 2,
+                    pointRadius: 2
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        angleLines: { display: true },
+                        suggestedMin: 0,
+                        suggestedMax: 100,
+                        ticks: { display: false },
+                        pointLabels: { font: { size: 10 }, color: '#94a3b8' }
+                    }
+                },
+                plugins: { legend: { display: false } },
+                maintainAspectRatio: false
+            }
+        });
+    }
+
+    function replayVoice() {
+        if (!recordedAudioBlob) {
+            alert("Không tìm thấy dữ liệu ghi âm.");
+            return;
+        }
+        
+        const replayBtn = document.getElementById('replay-btn');
+        replayBtn.innerHTML = '<i class="fas fa-spinner fa-spin fs-5"></i>';
+        
+        const audioUrl = URL.createObjectURL(recordedAudioBlob);
+        const audio = new Audio(audioUrl);
+        
+        audio.onended = () => {
+            replayBtn.innerHTML = '<i class="fa-solid fa-play fs-5"></i>';
+        };
+        
+        audio.play().catch(e => {
+            console.error("Play error:", e);
+            replayBtn.innerHTML = '<i class="fa-solid fa-play fs-5"></i>';
+            alert("Lỗi khi phát lại âm thanh.");
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        renderGrid();
+    });
+</script>
+}

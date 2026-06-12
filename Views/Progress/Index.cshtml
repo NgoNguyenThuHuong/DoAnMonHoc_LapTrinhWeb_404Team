@@ -1,0 +1,316 @@
+@model IEnumerable<LingoToneMVC.Models.UserProgress>
+@{
+    ViewData["Title"] = "AI Adaptive Learning";
+    var completedLessonsCount = ViewBag.CompletedLessons ?? 0;
+    var totalLessons = ViewBag.TotalLessons ?? 8;
+    var wordsLearned = ViewBag.WordsLearned ?? 0;
+}
+
+@section Styles {
+    <style>
+        .progress-shell {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+        }
+
+        .ai-recommendation-box {
+            background: linear-gradient(135deg, rgba(59,130,246,0.05), rgba(139,92,246,0.05));
+            border-radius: 24px;
+            padding: 32px;
+            border: 1px solid rgba(59,130,246,0.1);
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-recommendation-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, #3B82F6, #8B5CF6, #EC4899);
+        }
+
+        .typewriter-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #334155;
+            min-height: 150px;
+        }
+
+        .typewriter-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 16px;
+            background: #3B82F6;
+            margin-left: 4px;
+            animation: blink 1s step-end infinite;
+        }
+
+        @@keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+}
+
+<div class="animate-fade-in progress-shell">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #3B82F6, #8B5CF6); border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(59,130,246,0.2);">
+            <i class="fa-solid fa-chart-pie text-white fs-4"></i>
+        </div>
+        <div>
+            <h2 class="fw-bold m-0" style="font-size: 24px; color: #1e293b;">AI Adaptive Learning</h2>
+            <p class="text-secondary m-0" style="font-size: 14px;">Tiến độ và Đề xuất cá nhân hóa</p>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(245,158,11,0.1); color: #F59E0B;">
+                <i class="fas fa-star"></i>
+            </div>
+            <div>
+                <div class="text-secondary" style="font-size: 12px; font-weight: 600;">TỔNG XP</div>
+                <div class="fw-bold text-dark" style="font-size: 20px;" id="dashboard-xp">0</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(239,68,68,0.1); color: #EF4444;">
+                <i class="fas fa-fire"></i>
+            </div>
+            <div>
+                <div class="text-secondary" style="font-size: 12px; font-weight: 600;">STREAK</div>
+                <div class="fw-bold text-dark" style="font-size: 20px;">@ViewBag.UserStreak Ngày</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(16,185,129,0.1); color: #10B981;">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <div>
+                <div class="text-secondary" style="font-size: 12px; font-weight: 600;">BÀI ĐÃ HỌC</div>
+                <div class="fw-bold text-dark" style="font-size: 20px;">@completedLessonsCount / @totalLessons</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(139,92,246,0.1); color: #8B5CF6;">
+                <i class="fas fa-language"></i>
+            </div>
+            <div>
+                <div class="text-secondary" style="font-size: 12px; font-weight: 600;">SỐ TỪ ĐÃ THUỘC</div>
+                <div class="fw-bold text-dark" style="font-size: 20px;">@wordsLearned</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- XP Line Chart -->
+    <div class="chart-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold m-0" style="font-size: 16px;">Biểu đồ Nỗ lực 7 ngày qua</h3>
+            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2"><i class="fas fa-arrow-trend-up me-1"></i> Tăng 15% so với tuần trước</span>
+        </div>
+        <div style="height: 250px;">
+            <canvas id="xpChart"></canvas>
+        </div>
+    </div>
+
+    <!-- AI Radar & Recommendation -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-5">
+            <div class="chart-container h-100 m-0">
+                <h3 class="fw-bold mb-4 text-center" style="font-size: 16px;">Lưới Năng Lực (AI Scan)</h3>
+                <div style="height: 300px; display: flex; justify-content: center;">
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="ai-recommendation-box d-flex flex-column">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div style="width: 48px; height: 48px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); color: #3B82F6; font-size: 20px;">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold m-0" style="font-size: 18px;">AI Coach Đề Xuất</h3>
+                        <p class="text-secondary m-0" style="font-size: 13px;">Dựa trên phân tích 100 câu Quiz và Phát âm gần nhất</p>
+                    </div>
+                </div>
+
+                <div class="typewriter-text" id="typewriter-container">
+                    <!-- JS fills this -->
+                    <span id="typewriter-text"></span><span class="typewriter-cursor" id="typewriter-cursor"></span>
+                </div>
+
+                <div class="mt-auto pt-4 d-flex gap-3" id="ai-actions" style="opacity: 0; transition: opacity 0.5s ease;">
+                    <a href="/Grammar" class="btn btn-primary px-4 py-2 fw-bold" style="border-radius: 999px; background: linear-gradient(135deg, #3B82F6, #8B5CF6); border: none;">
+                        <i class="fas fa-book me-2"></i> Ôn lại Ngữ Pháp
+                    </a>
+                    <a href="/Quiz" class="btn btn-light px-4 py-2 fw-bold text-primary" style="border-radius: 999px; border: 1px solid rgba(59,130,246,0.2);">
+                        <i class="fas fa-gamepad me-2"></i> Làm Quiz bổ sung
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Thêm thư viện Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Update XP from localStorage
+            let storedXp = parseInt(localStorage.getItem('lingo_xp') || '0');
+            document.getElementById('dashboard-xp').innerText = storedXp + ' XP';
+            
+            // 1. XP Line Chart
+            const xpCtx = document.getElementById('xpChart').getContext('2d');
+            
+            // Generate mock weekly data
+            const days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+            const xpData = [120, 350, 200, 500, 150, 450, 600];
+
+            new Chart(xpCtx, {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'XP Đạt được',
+                        data: xpData,
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#3B82F6',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { borderDash: [5, 5], color: 'rgba(0,0,0,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // 2. Radar Chart (Năng lực)
+            const radarCtx = document.getElementById('radarChart').getContext('2d');
+            new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Từ vựng', 'Ngữ pháp', 'Phát âm', 'Nghe hiểu', 'Đọc hiểu'],
+                    datasets: [{
+                        label: 'Kỹ năng hiện tại',
+                        data: [85, 45, 90, 75, 80], // Ngữ pháp thấp nhất
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderColor: '#10B981',
+                        pointBackgroundColor: '#10B981',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#10B981'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0,0,0,0.05)' },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            pointLabels: { font: { size: 12, family: 'Inter', weight: 'bold' }, color: '#475569' },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 3. Typewriter Effect for AI Recommendation
+            const aiText = "Xin chào! Qua phân tích biểu đồ năng lực, tôi thấy bạn làm rất tốt phần **Phát âm** (90%) và **Từ vựng** (85%). Tuy nhiên, bạn đang gặp khó khăn lớn ở phần **Ngữ pháp** (chỉ đạt 45%).\n\nCụ thể, bạn thường xuyên làm sai các câu có chứa 'Bổ ngữ kết quả' và chữ '把' trong Quiz Arena tuần qua.\n\nAI đề xuất: Bạn nên dừng học bài mới, dành 30 phút hôm nay để ôn lại chuyên đề Ngữ Pháp Bài 4 và làm thêm 20 câu Quiz bổ sung để vá lỗ hổng kiến thức này nhé!";
+            
+            let i = 0;
+            const speed = 25; // ms per char
+            const textElement = document.getElementById("typewriter-text");
+            const cursorElement = document.getElementById("typewriter-cursor");
+            const actionsElement = document.getElementById("ai-actions");
+
+            // Format markdown-like bold text **text** to HTML <strong>
+            let isBold = false;
+            let displayHtml = "";
+            let rawTextIndex = 0;
+
+            function typeWriter() {
+                if (rawTextIndex < aiText.length) {
+                    const char = aiText.charAt(rawTextIndex);
+                    
+                    if (char === '*' && aiText.charAt(rawTextIndex + 1) === '*') {
+                        isBold = !isBold;
+                        displayHtml += isBold ? "<strong>" : "</strong>";
+                        rawTextIndex += 2;
+                    } else if (char === '\n') {
+                        displayHtml += "<br>";
+                        rawTextIndex++;
+                    } else {
+                        displayHtml += char;
+                        rawTextIndex++;
+                    }
+
+                    textElement.innerHTML = displayHtml;
+                    setTimeout(typeWriter, speed);
+                } else {
+                    cursorElement.style.display = 'none';
+                    actionsElement.style.opacity = '1';
+                }
+            }
+
+            // Start typing after a short delay
+            setTimeout(typeWriter, 500);
+        });
+    </script>
+}

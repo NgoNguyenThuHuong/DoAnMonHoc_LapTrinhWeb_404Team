@@ -1,0 +1,355 @@
+@model LingoToneMVC.ViewModels.LessonDetailViewModel
+@{
+    ViewData["Title"] = Model.Lesson.Title;
+}
+
+<div class="animate-slide-in" style="max-width: 800px; margin: 0 auto;">
+    <a href="/Lesson" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Quay lại danh sách
+    </a>
+
+    <div class="glass-card lesson-detail-card">
+        <h2 class="fw-bold mb-4" style="font-size: 28px; color: #1e293b;">@Model.Lesson.Title</h2>
+        <p class="text-secondary mb-4">@Model.Lesson.Description</p>
+
+        <!-- Nav Tabs -->
+        <ul class="nav nav-tabs custom-tabs mb-4" id="lessonTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold" id="vocab-tab" data-bs-toggle="tab" data-bs-target="#vocab" type="button" role="tab" data-tab="vocabulary">
+                    <i class="fas fa-book-open"></i> Từ vựng
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="grammar-tab" data-bs-toggle="tab" data-bs-target="#grammar" type="button" role="tab" data-tab="grammar">
+                    <i class="fas fa-pen-nib"></i> Ngữ pháp
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="dialogue-tab" data-bs-toggle="tab" data-bs-target="#dialogue" type="button" role="tab" data-tab="dialogue">
+                    <i class="fas fa-comments"></i> Hội thoại
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold text-warning" id="quiz-tab" data-bs-toggle="tab" data-bs-target="#quiz" type="button" role="tab" data-tab="quiz">
+                    <i class="fas fa-trophy"></i> Quiz
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold text-primary" id="roleplay-tab" data-bs-toggle="tab" data-bs-target="#roleplay" type="button" role="tab" data-tab="roleplay">
+                    <i class="fas fa-robot"></i> AI Roleplay
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Contents -->
+        <div class="tab-content" id="lessonTabsContent">
+            
+            <!-- Tab 1: Vocab -->
+            <div class="tab-pane fade show active" id="vocab" role="tabpanel">
+                <div class="vocab-tags mb-4">
+                    @foreach (var vocab in Model.Vocabularies)
+                    {
+                        <div class="vocab-tag" 
+                             onclick="showWordDetails('@Html.Raw(vocab.Chinese?.Replace("'", "\\'"))', '@Html.Raw(vocab.Pinyin?.Replace("'", "\\'"))', '@Html.Raw(vocab.Vietnamese?.Replace("'", "\\'"))')"
+                             style="cursor: pointer; transition: transform 0.2s;"
+                             onmouseover="this.style.transform='scale(1.1)'"
+                             onmouseout="this.style.transform='scale(1)'">
+                            @vocab.Chinese
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Tab 2: Grammar -->
+            <div class="tab-pane fade" id="grammar" role="tabpanel">
+                @if (Model.GrammarPoints != null && Model.GrammarPoints.Any())
+                {
+                    <div class="d-flex flex-column gap-3 mt-3">
+                        @foreach (var g in Model.GrammarPoints)
+                        {
+                            <div class="grammar-card p-4 rounded-4" style="background: white; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                                <h4 class="fw-bold text-primary mb-2">@g.Title</h4>
+                                <div class="pattern fw-bold text-dark mb-3" style="font-size: 18px; padding: 8px 12px; background: rgba(59,130,246,0.1); border-radius: 8px; display: inline-block;">@g.Pattern</div>
+                                <p class="text-secondary mb-3">@g.Explanation</p>
+                                
+                                @if(!string.IsNullOrEmpty(g.Example))
+                                {
+                                    <div class="example-card p-3 rounded-3" style="background: rgba(16,185,129,0.05); border-left: 4px solid #10b981;">
+                                        <div class="hanzi fw-bold text-dark" style="font-size: 20px;">@g.Example</div>
+                                        <div class="pinyin text-success" style="font-size: 14px; font-family: monospace;">@g.ExamplePinyin</div>
+                                        <div class="meaning text-secondary mt-1" style="font-size: 14px;">@g.ExampleMeaning</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center p-5 text-secondary">
+                        <i class="fas fa-tools fs-1 text-light mb-3"></i>
+                        <p>Ngữ pháp đang được cập nhật cho bài học này.</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Tab 3: Dialogue -->
+            <div class="tab-pane fade" id="dialogue" role="tabpanel">
+                @if (Model.Dialogues != null && Model.Dialogues.Any())
+                {
+                    <div class="d-flex flex-column gap-4 mt-3">
+                        @foreach (var d in Model.Dialogues)
+                        {
+                            <div class="dialogue-card p-4 rounded-4" style="background: white; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                                <h4 class="fw-bold text-dark mb-4 text-center border-bottom pb-3"><i class="fas fa-comments text-primary me-2"></i> @d.Title</h4>
+                                <div class="d-flex flex-column gap-3">
+                                    @foreach (var line in d.Lines)
+                                    {
+                                        <div class="dialogue-line d-flex gap-3 align-items-start @(line.Speaker == "A" ? "" : "flex-row-reverse text-end")">
+                                            <div class="speaker fw-bold text-white rounded-circle d-flex justify-content-center align-items-center" style="width: 40px; height: 40px; background: @(line.Speaker == "A" ? "#3b82f6" : "#10b981"); flex-shrink: 0;">
+                                                @line.Speaker
+                                            </div>
+                                            <div class="bubble p-3 rounded-4 text-start" style="background: @(line.Speaker == "A" ? "rgba(59,130,246,0.1)" : "rgba(16,185,129,0.1)"); max-width: 80%;">
+                                                <div class="hanzi fw-bold text-dark" style="font-size: 18px;">@line.Hanzi</div>
+                                                <div class="pinyin text-secondary" style="font-size: 13px; font-family: monospace;">@line.Pinyin</div>
+                                                <div class="meaning text-secondary mt-1" style="font-size: 14px;">@line.MeaningVi</div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center p-5 text-secondary">
+                        <i class="fas fa-comments fs-1 text-light mb-3"></i>
+                        <p>Hội thoại mẫu đang được cập nhật.</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Tab 4: Quiz -->
+            <div class="tab-pane fade" id="quiz" role="tabpanel">
+                <div class="text-center p-5">
+                    <i class="fas fa-medal fs-1 text-warning mb-3"></i>
+                    <h4 class="fw-bold text-dark">Kiểm tra Từ vựng</h4>
+                    <p class="text-secondary mb-4">Ôn luyện 15 từ vựng vừa học trong Đấu trường Quiz.</p>
+                    <a asp-controller="Quiz" asp-action="Index" asp-route-lessonId="@Model.Lesson.Id" class="btn btn-warning fw-bold px-4" style="border-radius: 12px; color: white; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+                        Vào Quiz Arena
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tab 5: Roleplay -->
+            <div class="tab-pane fade" id="roleplay" role="tabpanel">
+                <div class="text-center p-5">
+                    <div style="font-size: 48px; margin-bottom: 16px;">🤖</div>
+                    <h4 class="fw-bold text-primary">Thực hành Giao tiếp AI</h4>
+                    <p class="text-secondary mb-4">Chat bằng giọng nói với AI sử dụng ngữ cảnh bài học này.</p>
+                    <a href="/Roleplay?lessonId=@Model.Lesson.Id" class="btn btn-primary fw-bold px-4" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                        Mở AI Roleplay
+                    </a>
+                </div>
+            </div>
+            
+        </div>
+
+        <style>
+            .custom-tabs {
+                border-bottom: 2px solid #e2e8f0;
+            }
+            .custom-tabs .nav-link {
+                color: #64748b;
+                border: none;
+                border-bottom: 2px solid transparent;
+                padding: 12px 16px;
+                margin-bottom: -2px;
+                transition: all 0.2s;
+            }
+            .custom-tabs .nav-link:hover {
+                color: #3b82f6;
+            }
+            .custom-tabs .nav-link.active {
+                color: #3b82f6;
+                background: transparent;
+                border-bottom: 2px solid #3b82f6;
+            }
+        </style>
+
+        <!-- Complete Button -->
+        @if (Model.IsCompleted)
+        {
+            <div id="completed-msg" style="display: block;">
+                <p class="text-success fw-bold text-center mt-4">
+                    <i class="fas fa-check-circle me-1"></i> Bạn đã hoàn thành bài học này!
+                </p>
+            </div>
+            <button type="button" class="complete-btn completed w-100 mt-3 py-3 rounded-4 fw-bold" style="background: #e2e8f0; color: #64748b; border: none; cursor: not-allowed;" disabled>
+                ✅ Đã hoàn thành bài học
+            </button>
+        }
+        else
+        {
+            <div id="completed-msg" style="display: none;">
+                <p class="text-success fw-bold text-center mt-4">
+                    <i class="fas fa-check-circle me-1"></i> Bạn đã hoàn thành bài học này!
+                </p>
+            </div>
+            <form id="complete-form">
+                @Html.AntiForgeryToken()
+                <button type="button" id="completeLessonBtn" class="complete-btn auth-required w-100 mt-3 py-3 rounded-4 fw-bold" style="background: #e2e8f0; color: #64748b; border: none; transition: all 0.3s;" data-lesson-id="@Model.Lesson.Id" onclick="return requireAuth(event) ? true : event.preventDefault()" disabled>
+                    🔒 Xem đủ 1/5 mục để hoàn thành
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+<!-- Word Detail Modal -->
+<div class="modal fade" id="wordModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content" style="border-radius: 24px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+      <div class="modal-body text-center p-4">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h1 id="modal-hanzi" class="fw-bold mb-2 text-dark" style="font-size: 72px;">水</h1>
+        <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+            <p id="modal-pinyin" class="text-success fw-bold mb-0" style="font-size: 24px; font-family: monospace;">shuǐ</p>
+            <button class="btn btn-sm btn-light rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="playAudio()">
+                <i class="fas fa-volume-up text-primary"></i>
+            </button>
+        </div>
+        <p id="modal-vietnamese" class="text-secondary mb-0" style="font-size: 16px;">nước</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    const hsk1Vietnamese = { "爱": "yêu", "八": "tám", "爸爸": "bố", "杯子": "cốc", "北京": "Bắc Kinh", "本": "quyển", "不客气": "đừng khách sáo", "不": "không", "菜": "rau, thức ăn", "茶": "trà", "吃": "ăn", "出租车": "xe taxi", "打电话": "gọi điện thoại", "大": "to, lớn", "的": "của", "点": "giờ, chút", "电脑": "máy tính", "电视": "tivi", "电影": "phim ảnh", "东西": "đồ vật", "都": "đều", "读": "đọc", "对不起": "xin lỗi", "多": "nhiều", "多少": "bao nhiêu", "儿子": "con trai", "二": "hai", "饭馆": "nhà hàng", "飞机": "máy bay", "分钟": "phút", "高兴": "vui vẻ", "个": "cái, chiếc", "工作": "làm việc, công việc", "汉语": "tiếng Hán", "好": "tốt, khỏe", "号": "ngày, số", "喝": "uống", "和": "và", "很": "rất", "后面": "phía sau", "回": "trở về", "会": "biết, sẽ", "几": "mấy", "家": "nhà, gia đình", "叫": "gọi, tên là", "今天": "hôm nay", "九": "chín", "开": "mở, lái", "看": "nhìn, xem", "看见": "nhìn thấy", "块": "đồng (tiền)", "来": "đến", "老师": "giáo viên", "了": "rồi", "冷": "lạnh", "里": "trong", "零": "không", "六": "sáu", "妈妈": "mẹ", "吗": "không (từ để hỏi)", "买": "mua", "没关系": "không có gì", "没有": "không có", "米饭": "cơm", "明天": "ngày mai", "名字": "tên", "哪": "nào", "哪儿": "ở đâu", "那": "kia, đó", "呢": "nhỉ, thì sao", "能": "có thể", "你": "bạn", "年": "năm", "女儿": "con gái", "朋友": "bạn bè", "漂亮": "đẹp", "苹果": "quả táo", "七": "bảy", "钱": "tiền", "前面": "phía trước", "请": "mời, xin", "去": "đi", "热": "nóng", "人": "người", "认识": "quen biết", "三": "ba", "商店": "cửa hàng", "上": "trên", "上午": "buổi sáng", "少": "ít", "谁": "ai", "什么": "cái gì", "十": "mười", "时候": "lúc, khi", "是": "là", "书": "sách", "水": "nước", "水果": "hoa quả", "睡觉": "ngủ", "说话": "nói chuyện", "四": "bốn", "岁": "tuổi", "他": "anh ấy", "她": "cô ấy", "太": "quá", "天气": "thời tiết", "听": "nghe", "同学": "bạn học", "喂": "alo", "我": "tôi", "我们": "chúng tôi", "五": "năm", "喜欢": "thích", "下": "dưới", "下午": "buổi chiều", "下雨": "trời mưa", "先生": "tiên sinh, ngài", "现在": "bây giờ", "想": "muốn, nhớ", "小": "nhỏ", "小姐": "cô gái", "些": "một số", "写": "viết", "谢谢": "cảm ơn", "星期": "tuần", "学生": "học sinh", "学习": "học tập", "学校": "trường học", "一": "một", "一点儿": "một chút", "医生": "bác sĩ", "医院": "bệnh viện", "衣服": "quần áo", "椅子": "cái ghế", "有": "có", "月": "tháng", "再见": "tạm biệt", "在": "ở", "怎么": "thế nào", "怎么样": "như thế nào", "这": "đây, này", "中国": "Trung Quốc", "中午": "buổi trưa", "住": "sống, ở", "桌子": "cái bàn", "字": "chữ", "昨天": "hôm qua", "坐": "ngồi", "做": "làm" };
+
+    let currentWord = '';
+    function showWordDetails(hanzi, pinyin, defaultVietnamese) {
+        let meaning = defaultVietnamese;
+        let trimmedHanzi = (hanzi || '').trim();
+        if (hsk1Vietnamese[trimmedHanzi]) {
+            meaning = hsk1Vietnamese[trimmedHanzi];
+        }
+
+        document.getElementById('modal-hanzi').innerText = hanzi;
+        document.getElementById('modal-pinyin').innerText = pinyin;
+        document.getElementById('modal-vietnamese').innerText = meaning;
+        currentWord = hanzi;
+        
+        var modal = new bootstrap.Modal(document.getElementById('wordModal'));
+        modal.show();
+        playAudio();
+    }
+
+    function playAudio() {
+        if (!currentWord) return;
+        var msg = new SpeechSynthesisUtterance();
+        msg.text = currentWord;
+        msg.lang = 'zh-CN';
+        // Optional: slow down rate slightly for clearer pronunciation
+        msg.rate = 0.9; 
+        window.speechSynthesis.speak(msg);
+    }
+
+    // Complete Button Logic
+    const requiredTabs = ["vocabulary", "grammar", "dialogue", "quiz", "roleplay"];
+    const visitedTabs = new Set();
+    const completeBtn = document.getElementById("completeLessonBtn");
+
+    function updateCompleteButtonState() {
+        if (!completeBtn) return;
+        const allVisited = requiredTabs.every(tab => visitedTabs.has(tab));
+        completeBtn.disabled = !allVisited;
+        if (allVisited) {
+            completeBtn.classList.add("ready");
+            completeBtn.style.background = "#10b981";
+            completeBtn.style.color = "white";
+            completeBtn.style.cursor = "pointer";
+            completeBtn.innerHTML = "✅ Hoàn thành bài học (+100 XP)";
+        } else {
+            completeBtn.classList.remove("ready");
+            completeBtn.style.background = "#e2e8f0";
+            completeBtn.style.color = "#64748b";
+            completeBtn.style.cursor = "not-allowed";
+            completeBtn.innerHTML = `🔒 Xem đủ ${visitedTabs.size}/${requiredTabs.length} mục để hoàn thành`;
+        }
+    }
+
+    document.querySelectorAll("[data-tab]").forEach(tabBtn => {
+        tabBtn.addEventListener("click", function () {
+            const tabName = this.getAttribute("data-tab");
+            if (tabName) {
+                visitedTabs.add(tabName);
+                updateCompleteButtonState();
+            }
+        });
+    });
+
+    const activeTab = document.querySelector("[data-tab].active");
+    if (activeTab) {
+        visitedTabs.add(activeTab.getAttribute("data-tab"));
+    }
+    updateCompleteButtonState();
+
+    if (completeBtn) {
+        completeBtn.addEventListener("click", async function (e) {
+            if (typeof requireAuth === 'function' && !requireAuth(e)) return;
+            const lessonId = this.dataset.lessonId;
+            const allVisited = requiredTabs.every(tab => visitedTabs.has(tab));
+            if (!allVisited) {
+                alert("Bạn cần xem đủ tất cả mục trong bài học trước khi hoàn thành.");
+                return;
+            }
+
+            this.disabled = true;
+            this.innerHTML = "Đang lưu...";
+
+            try {
+                const token = document.querySelector('input[name=__RequestVerificationToken]').value;
+                const response = await fetch(`/Lesson/Complete/${lessonId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: `__RequestVerificationToken=${encodeURIComponent(token)}`
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    this.innerHTML = "✅ Đã hoàn thành bài học";
+                    this.classList.add("completed");
+                    this.style.background = "#e2e8f0";
+                    this.style.color = "#64748b";
+                    this.style.cursor = "not-allowed";
+
+                    const msg = document.getElementById("completed-msg");
+                    if (msg) msg.style.display = "block";
+
+                    // Cập nhật XP trên UI (nếu có element với class xp-display)
+                    if (result.xp !== undefined) {
+                        const xpElements = document.querySelectorAll(".xp-display, #user-xp-display, [data-user-xp]");
+                        xpElements.forEach(el => el.textContent = result.xp + " XP");
+                    }
+                    
+                    // Show a toast or nice alert
+                    alert(result.message || "Hoàn thành bài học thành công!");
+                } else {
+                    this.disabled = false;
+                    this.innerHTML = "✅ Hoàn thành bài học (+100 XP)";
+                    alert(result.message || "Không thể hoàn thành bài học.");
+                }
+            } catch (error) {
+                this.disabled = false;
+                this.innerHTML = "✅ Hoàn thành bài học (+100 XP)";
+                alert("Có lỗi xảy ra khi lưu tiến độ bài học.");
+            }
+        });
+    }
+</script>

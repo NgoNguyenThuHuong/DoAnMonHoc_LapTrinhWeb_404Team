@@ -1,0 +1,414 @@
+@{
+    ViewData["Title"] = "Smart Review SRS";
+}
+
+<style>
+    .srs-stat-card {
+        background: white;
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex: 1;
+        min-width: 150px;
+    }
+    .srs-stat-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .srs-action-btn {
+        flex: 1;
+        padding: 16px 8px;
+        border-radius: 16px;
+        background: white;
+        border: 1px solid rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+    .srs-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+    .srs-action-btn.btn-forget { color: #ef4444; border-bottom: 3px solid #ef4444; }
+    .srs-action-btn.btn-hard { color: #f59e0b; border-bottom: 3px solid #f59e0b; }
+    .srs-action-btn.btn-good { color: #3b82f6; border-bottom: 3px solid #3b82f6; }
+    .srs-action-btn.btn-easy { color: #10b981; border-bottom: 3px solid #10b981; }
+    
+    .srs-tab {
+        font-size: 11px;
+        padding: 4px 12px;
+        border-radius: 999px;
+        color: #64748b;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .srs-tab.active {
+        background: rgba(59,130,246,0.1);
+        color: #3b82f6;
+    }
+</style>
+
+<!-- Load Chart.js for Line Chart -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="animate-fade-in">
+    <!-- Header -->
+    <div class="d-flex align-items-center mb-4">
+        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #8b5cf6, #6366f1); border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(139,92,246,0.2); margin-right: 16px;">
+            <i class="fa-solid fa-brain text-white fs-4"></i>
+        </div>
+        <div>
+            <h2 class="fw-bold m-0" style="font-size: 24px; color: #1e293b;">Smart Review SRS</h2>
+            <p class="text-secondary m-0" style="font-size: 14px;">Ôn tập thông minh – Ghi nhớ lâu hơn với thuật toán AI</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main SRS Area -->
+        <div class="col-lg-8 d-flex flex-column gap-4">
+            
+            <!-- Top Stats -->
+            <div class="d-flex flex-wrap gap-3">
+                <div class="srs-stat-card">
+                    <div class="srs-stat-icon" style="background: rgba(59,130,246,0.1); color: #3b82f6;"><i class="fa-solid fa-layer-group"></i></div>
+                    <div>
+                        <div class="text-secondary" style="font-size: 10px; font-weight: 700; text-transform: uppercase;">CÒN LẠI HÔM NAY</div>
+                        <div class="fw-bold text-dark" style="font-size: 16px;">24 thẻ</div>
+                    </div>
+                </div>
+                <div class="srs-stat-card">
+                    <div class="srs-stat-icon" style="background: rgba(16,185,129,0.1); color: #10b981;"><i class="fa-solid fa-check-square"></i></div>
+                    <div>
+                        <div class="text-secondary" style="font-size: 10px; font-weight: 700; text-transform: uppercase;">ĐÃ ÔN HÔM NAY</div>
+                        <div class="fw-bold text-dark" style="font-size: 16px;">16 thẻ</div>
+                    </div>
+                </div>
+                <div class="srs-stat-card">
+                    <div class="srs-stat-icon" style="background: rgba(245,158,11,0.1); color: #f59e0b;"><i class="fa-solid fa-chart-pie"></i></div>
+                    <div>
+                        <div class="text-secondary" style="font-size: 10px; font-weight: 700; text-transform: uppercase;">TỶ LỆ NHỚ</div>
+                        <div class="fw-bold text-dark" style="font-size: 16px;">85%</div>
+                    </div>
+                </div>
+                <div class="srs-stat-card">
+                    <div class="srs-stat-icon" style="background: rgba(139,92,246,0.1); color: #8b5cf6;"><i class="fa-solid fa-star"></i></div>
+                    <div>
+                        <div class="text-secondary" style="font-size: 10px; font-weight: 700; text-transform: uppercase;">SRS LEVEL</div>
+                        <div class="fw-bold text-dark" style="font-size: 16px;">Lv. 3.2</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Display -->
+            <div class="glass-card card flex-grow-1 d-flex flex-column" style="border-radius: 24px; padding: 24px; min-height: 400px; position: relative;">
+                <div class="position-absolute" style="top: 24px; left: 24px;">
+                    <span class="badge" style="background: rgba(16,185,129,0.1); color: #10b981; padding: 6px 12px; border-radius: 999px;">Mới</span>
+                </div>
+
+                <div class="text-center flex-grow-1 d-flex flex-column justify-content-center" id="srs-card-area">
+                    <div class="d-flex align-items-center justify-content-center gap-3 mb-2">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <span class="ms-2">Đang tải thẻ từ...</span>
+                    </div>
+                </div>
+
+                <!-- Answer Buttons -->
+                <div class="d-flex gap-3 mt-auto pt-4" id="srs-action-area" style="display: none !important;">
+                    <div class="srs-action-btn btn-forget" onclick="answerCard('forget')">
+                        <div class="fw-bold d-flex align-items-center gap-2"><i class="fa-solid fa-rotate-right"></i> Quên</div>
+                        <div class="opacity-75" style="font-size: 12px; font-weight: 500;">1 phút</div>
+                    </div>
+                    <div class="srs-action-btn btn-hard" onclick="answerCard('hard')">
+                        <div class="fw-bold d-flex align-items-center gap-2"><i class="fa-solid fa-circle-arrow-up"></i> Khó</div>
+                        <div class="opacity-75" style="font-size: 12px; font-weight: 500;">10 phút</div>
+                    </div>
+                    <div class="srs-action-btn btn-good" onclick="answerCard('good')">
+                        <div class="fw-bold d-flex align-items-center gap-2"><i class="fa-solid fa-check"></i> Tốt</div>
+                        <div class="opacity-75" style="font-size: 12px; font-weight: 500;">1 ngày</div>
+                    </div>
+                    <div class="srs-action-btn btn-easy" onclick="answerCard('easy')">
+                        <div class="fw-bold d-flex align-items-center gap-2"><i class="fa-solid fa-check-double"></i> Dễ</div>
+                        <div class="opacity-75" style="font-size: 12px; font-weight: 500;">4 ngày</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Right Column: Stats & Suggestion -->
+        <div class="col-lg-4 d-flex flex-column gap-4">
+            
+            <!-- Tiến độ ôn tập Chart -->
+            <div class="glass-card card" style="border-radius: 24px; padding: 24px;">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-success fs-5"></i>
+                        <h5 class="fw-bold m-0 text-dark" style="font-size: 16px;">Tiến độ ôn tập</h5>
+                    </div>
+                    <div class="d-flex gap-1" style="background: rgba(0,0,0,0.03); border-radius: 999px; padding: 4px;">
+                        <div class="srs-tab active">7 ngày</div>
+                        <div class="srs-tab">30 ngày</div>
+                    </div>
+                </div>
+                
+                <div style="height: 180px; width: 100%;">
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Gợi ý AI -->
+            <div class="glass-card card flex-grow-1" style="border-radius: 24px; padding: 24px; background: rgba(59,130,246,0.02); display: flex; flex-direction: column;">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div style="width: 32px; height: 32px; background: rgba(59,130,246,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-robot text-primary fs-6"></i></div>
+                    <h6 class="fw-bold m-0 text-dark">Gợi ý của AI</h6>
+                </div>
+                
+                <p class="text-secondary" style="font-size: 13px; line-height: 1.6; margin-bottom: 24px;">
+                    Bạn đang tiến bộ tốt! Hãy duy trì thói quen ôn tập đều đặn mỗi ngày để tăng khả năng ghi nhớ lâu dài nhé! ✨
+                </p>
+                
+                <div class="mt-auto">
+                    <button class="btn btn-light w-100 fw-bold d-flex align-items-center justify-content-between" style="border-radius: 12px; background: white; border: 1px solid rgba(0,0,0,0.05); color: #4b5563; font-size: 13px; padding: 12px 16px;" onclick="showForgottenWords()">
+                        <span><i class="fa-solid fa-clock-rotate-left me-2 opacity-50"></i> Xem những từ bạn hay quên</span>
+                        <i class="fa-solid fa-chevron-right opacity-50" style="font-size: 10px;"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Forgotten Words Modal -->
+<div class="modal fade" id="forgottenModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 24px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <h5 class="modal-title fw-bold text-dark"><i class="fa-solid fa-robot text-primary me-2"></i> Từ vựng cần chú ý</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 pb-4 pt-3">
+                <p class="text-secondary" style="font-size: 14px;">Dưới đây là những từ bạn đã đánh dấu "Khó" hoặc "Quên" trong phiên ôn tập này. AI khuyên bạn nên xem lại một lần nữa nhé!</p>
+                <div id="forgotten-words-list" class="d-flex flex-column gap-2 mt-3">
+                    <!-- Words will be listed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Initialize Chart.js Line Chart
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        
+        // Create gradient for the area under the line
+        const gradient = ctx.createLinearGradient(0, 0, 0, 180);
+        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
+        gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['02/05', '03/05', '04/05', '05/05', '06/05', '07/05', '08/05'],
+                datasets: [{
+                    label: 'Tỷ lệ nhớ (%)',
+                    data: [38, 50, 66, 74, 75, 79, 90],
+                    borderColor: '#10b981',
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    fill: true,
+                    tension: 0.4 // Makes the line smooth/curved
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        padding: 10,
+                        titleFont: { size: 12 },
+                        bodyFont: { size: 13, weight: 'bold' },
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { font: { size: 10 }, color: '#94a3b8' }
+                    },
+                    y: {
+                        grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false },
+                        min: 0,
+                        max: 100,
+                        ticks: {
+                            stepSize: 25,
+                            font: { size: 10 },
+                            color: '#94a3b8',
+                            callback: function(value) { return value + '%'; }
+                        }
+                    }
+                }
+            }
+        });
+    });
+
+    // SRS Logic
+    let allWords = [];
+    let reviewQueue = [];
+    let currentCardIndex = 0;
+    
+    async function initSrs() {
+        try {
+            const res = await fetch('/data/hsk.json');
+            if (res.ok) {
+                allWords = await res.json();
+                // Just take 50 random words for level 1 to simulate current due cards
+                let hsk1Words = allWords.filter(w => w.level === 1);
+                hsk1Words.sort(() => 0.5 - Math.random());
+                reviewQueue = hsk1Words.slice(0, 10);
+                
+                showNextCard();
+            } else {
+                document.getElementById('srs-card-area').innerHTML = `<div class="alert alert-danger">Không tải được dữ liệu HSK.</div>`;
+            }
+        } catch (e) {
+            console.error(e);
+            document.getElementById('srs-card-area').innerHTML = `<div class="alert alert-danger">Lỗi kết nối dữ liệu.</div>`;
+        }
+    }
+
+    function showNextCard() {
+        if (currentCardIndex >= reviewQueue.length) {
+            document.getElementById('srs-card-area').innerHTML = `
+                <div class="text-success mb-3"><i class="fa-solid fa-check-circle" style="font-size: 64px;"></i></div>
+                <h3 class="fw-bold">Bạn đã hoàn thành!</h3>
+                <p class="text-secondary">Tất cả thẻ của hôm nay đã được ôn tập.</p>
+            `;
+            document.getElementById('srs-action-area').style.setProperty("display", "none", "important");
+            return;
+        }
+
+        const card = reviewQueue[currentCardIndex];
+        document.getElementById('srs-action-area').style.setProperty("display", "none", "important");
+        
+        let trans = "";
+        if (card.translations && card.translations.eng) {
+            trans = card.translations.eng.join(", ");
+        }
+
+        document.getElementById('srs-card-area').innerHTML = `
+            <div class="d-flex align-items-center justify-content-center gap-3 mb-2">
+                <div class="fw-bold text-dark" style="font-size: 64px; line-height: 1.2;">${card.hanzi}</div>
+            </div>
+            
+            <div id="card-back" style="opacity: 0; transition: opacity 0.3s; margin-top: 20px;">
+                <div class="fw-bold text-success mb-2" style="font-size: 24px; font-family: monospace;">${card.pinyin}</div>
+                <div id="card-translation" class="text-secondary mb-4" style="font-size: 18px;">
+                    <div class="spinner-border spinner-border-sm text-secondary" role="status"></div> Đang dịch nghĩa...
+                </div>
+            </div>
+            
+            <button id="btn-reveal" class="btn btn-primary rounded-pill px-4 py-2 mt-4 mx-auto fw-bold shadow-sm" onclick="revealCard()">
+                Hiển thị kết quả
+            </button>
+        `;
+        
+        // Local dictionary for HSK 1 to bypass API rate limits
+        const hsk1Vietnamese = { "爱": "yêu", "八": "tám", "爸爸": "bố", "杯子": "cốc", "北京": "Bắc Kinh", "本": "quyển", "不客气": "đừng khách sáo", "不": "không", "菜": "rau, thức ăn", "茶": "trà", "吃": "ăn", "出租车": "xe taxi", "打电话": "gọi điện thoại", "大": "to, lớn", "的": "của", "点": "giờ, chút", "电脑": "máy tính", "电视": "tivi", "电影": "phim ảnh", "东西": "đồ vật", "都": "đều", "读": "đọc", "对不起": "xin lỗi", "多": "nhiều", "多少": "bao nhiêu", "儿子": "con trai", "二": "hai", "饭馆": "nhà hàng", "飞机": "máy bay", "分钟": "phút", "高兴": "vui vẻ", "个": "cái, chiếc", "工作": "làm việc, công việc", "汉语": "tiếng Hán", "好": "tốt, khỏe", "号": "ngày, số", "喝": "uống", "和": "và", "很": "rất", "后面": "phía sau", "回": "trở về", "会": "biết, sẽ", "几": "mấy", "家": "nhà, gia đình", "叫": "gọi, tên là", "今天": "hôm nay", "九": "chín", "开": "mở, lái", "看": "nhìn, xem", "看见": "nhìn thấy", "块": "đồng (tiền)", "来": "đến", "老师": "giáo viên", "了": "rồi", "冷": "lạnh", "里": "trong", "零": "không", "六": "sáu", "妈妈": "mẹ", "吗": "không (từ để hỏi)", "买": "mua", "没关系": "không có gì", "没有": "không có", "米饭": "cơm", "明天": "ngày mai", "名字": "tên", "哪": "nào", "哪儿": "ở đâu", "那": "kia, đó", "呢": "nhỉ, thì sao", "能": "có thể", "你": "bạn", "年": "năm", "女儿": "con gái", "朋友": "bạn bè", "漂亮": "đẹp", "苹果": "quả táo", "七": "bảy", "钱": "tiền", "前面": "phía trước", "请": "mời, xin", "去": "đi", "热": "nóng", "人": "người", "认识": "quen biết", "三": "ba", "商店": "cửa hàng", "上": "trên", "上午": "buổi sáng", "少": "ít", "谁": "ai", "什么": "cái gì", "十": "mười", "时候": "lúc, khi", "是": "là", "书": "sách", "水": "nước", "水果": "hoa quả", "睡觉": "ngủ", "说话": "nói chuyện", "四": "bốn", "岁": "tuổi", "他": "anh ấy", "她": "cô ấy", "太": "quá", "天气": "thời tiết", "听": "nghe", "同学": "bạn học", "喂": "alo", "我": "tôi", "我们": "chúng tôi", "五": "năm", "喜欢": "thích", "下": "dưới", "下午": "buổi chiều", "下雨": "trời mưa", "先生": "tiên sinh, ngài", "现在": "bây giờ", "想": "muốn, nhớ", "小": "nhỏ", "小姐": "cô gái", "些": "một số", "写": "viết", "谢谢": "cảm ơn", "星期": "tuần", "学生": "học sinh", "学习": "học tập", "学校": "trường học", "一": "một", "一点儿": "một chút", "医生": "bác sĩ", "医院": "bệnh viện", "衣服": "quần áo", "椅子": "cái ghế", "有": "có", "月": "tháng", "再见": "tạm biệt", "在": "ở", "怎么": "thế nào", "怎么样": "như thế nào", "这": "đây, này", "中国": "Trung Quốc", "中午": "buổi trưa", "住": "sống, ở", "桌子": "cái bàn", "字": "chữ", "昨天": "hôm qua", "坐": "ngồi", "做": "làm" };
+
+        let hanziKey = (card.hanzi || '').trim();
+        if (hsk1Vietnamese[hanziKey]) {
+            document.getElementById('card-translation').innerHTML = hsk1Vietnamese[hanziKey];
+        } else {
+            // Translate asynchronously if not in local dictionary
+            fetch('/Ai/TranslateEngToVie', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ englishText: trans })
+            })
+            .then(r => r.json())
+            .then(data => {
+                const el = document.getElementById('card-translation');
+                if (el) el.innerText = data.vietnamese || trans;
+            })
+            .catch(err => {
+                const el = document.getElementById('card-translation');
+                if (el) el.innerText = trans;
+            });
+        }
+    }
+
+    function revealCard() {
+        document.getElementById('card-back').style.opacity = '1';
+        document.getElementById('btn-reveal').style.display = 'none';
+        document.getElementById('srs-action-area').style.setProperty("display", "flex", "important");
+    }
+
+    let forgottenWords = [];
+
+    function answerCard(quality) {
+        if (quality === 'forget' || quality === 'hard') {
+            const card = reviewQueue[currentCardIndex];
+            if (!forgottenWords.find(w => w.id === card.id)) {
+                forgottenWords.push(card);
+            }
+        }
+        
+        // Here we would normally calculate next review interval using SuperMemo-2 algorithm and save to localStorage.
+        // For the demo, we just go to the next card.
+        currentCardIndex++;
+        showNextCard();
+    }
+
+    function showForgottenWords() {
+        let html = '';
+        if (forgottenWords.length === 0) {
+            html = '<div class="alert alert-success text-center" style="border-radius: 12px; font-size: 14px;">Tuyệt vời! Bạn chưa quên từ nào trong phiên này. 🎉</div>';
+        } else {
+            html = forgottenWords.map(w => `
+                <div class="d-flex justify-content-between align-items-center p-3" style="background: rgba(0,0,0,0.02); border-radius: 12px; border: 1px solid rgba(0,0,0,0.05);">
+                    <div class="fw-bold text-dark" style="font-size: 20px;">${w.hanzi}</div>
+                    <div class="text-end">
+                        <div class="text-success fw-bold" style="font-size: 14px;">${w.pinyin}</div>
+                        <div class="text-secondary" style="font-size: 12px;">${w.translations?.eng?.join(", ") || ''}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        document.getElementById('forgotten-words-list').innerHTML = html;
+        var myModal = new bootstrap.Modal(document.getElementById('forgottenModal'));
+        myModal.show();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        initSrs();
+    });
+</script>
+}

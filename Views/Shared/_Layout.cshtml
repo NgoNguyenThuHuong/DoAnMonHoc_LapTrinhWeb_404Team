@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="LingoTone - Website học tiếng Trung thông minh theo phương pháp Boya" />
+    <title>@ViewData["Title"] - LingoTone</title>
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Site CSS -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+<div id="app-wrapper">
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar glass-card d-none d-lg-flex flex-column" id="sidebar" style="border:none;">
+        <div class="sidebar-logo d-flex align-items-center gap-3" style="padding: 24px; margin-bottom: 8px;">
+            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #2dd4bf, #3b82f6); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px;">L</div>
+            <div>
+                <h2 class="m-0 fw-bold" style="font-size: 18px; color: #1e293b;">LingoTone AI</h2>
+                <p class="m-0 text-secondary" style="font-size: 11px;">Học tiếng Trung thông minh</p>
+            </div>
+        </div>
+
+        <div class="sidebar-menu flex-grow-1 px-3">
+            <div class="text-secondary fw-bold mb-2 ps-3" style="font-size: 11px; letter-spacing: 0.5px;">MAIN</div>
+            <a href="/" class="menu-item @(Context.Request.Path == "/" ? "active" : "")" style="border-radius: 12px;">
+                <i class="fa-solid fa-house"></i>
+                <span>Trang chủ</span>
+            </a>
+            <a href="/Lesson" class="menu-item @(Context.Request.Path.Value?.StartsWith("/Lesson") == true ? "active" : "") d-flex justify-content-between align-items-center" style="border-radius: 12px;">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>Khóa học HSK</span>
+                </div>
+                <span class="badge bg-success bg-opacity-10 text-success rounded-pill" style="font-size: 10px;">HSK 1-6</span>
+            </a>
+
+            <div class="text-secondary fw-bold mt-4 mb-2 ps-3" style="font-size: 11px; letter-spacing: 0.5px;">HSK CONTENT</div>
+            <a href="/Grammar" class="menu-item @(Context.Request.Path.Value?.StartsWith("/Grammar") == true ? "active" : "")" style="border-radius: 12px;">
+                <i class="fa-regular fa-file-lines"></i>
+                <span>Ngữ pháp</span>
+            </a>
+            <a href="/Character" class="menu-item @(Context.Request.Path.Value?.StartsWith("/Character") == true ? "active" : "")" style="border-radius: 12px;">
+                <i class="fa-solid fa-language"></i>
+                <span>Từ điển Hán tự AI</span>
+            </a>
+            <a href="/Pronunciation" class="menu-item @(Context.Request.Path.Value?.StartsWith("/Pronunciation") == true ? "active" : "")" style="border-radius: 12px;">
+                <i class="fa-solid fa-microphone"></i>
+                <span>Phát âm</span>
+            </a>
+
+            <div class="text-secondary fw-bold mt-4 mb-2 ps-3" style="font-size: 11px; letter-spacing: 0.5px;">LUYỆN TẬP</div>
+            <a href="/Quiz" class="menu-item @(Context.Request.Path.Value?.StartsWith("/Quiz") == true ? "active" : "")" style="border-radius: 12px;">
+                <i class="fa-solid fa-trophy"></i>
+                <span>Quiz Arena</span>
+            </a>
+            <a href="/Srs" class="menu-item @(Context.Request.Path.Value?.StartsWith("/Srs") == true ? "active" : "")" style="border-radius: 12px;">
+                <i class="fa-solid fa-brain"></i>
+                <span>Smart Review SRS</span>
+            </a>
+            <a href="/Roleplay" class="menu-item @(Context.Request.Path.Value?.StartsWith("/Roleplay") == true ? "active" : "") d-flex justify-content-between align-items-center" style="border-radius: 12px;">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="fa-solid fa-robot"></i>
+                    <span>AI Roleplay</span>
+                </div>
+                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill" style="font-size: 10px;">HOT</span>
+            </a>
+            <a href="/Writing" class="menu-item @(Context.Request.Path.Value?.StartsWith("/Writing") == true ? "active" : "") d-flex justify-content-between align-items-center" style="border-radius: 12px;">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="fa-solid fa-pen-nib"></i>
+                    <span>Writing Coach</span>
+                </div>
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill" style="font-size: 10px;">AI</span>
+            </a>
+            <a href="/Hsk" class="menu-item @(Context.Request.Path.Value?.StartsWith("/Hsk") == true ? "active" : "") d-flex justify-content-between align-items-center" style="border-radius: 12px;">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>HSK Estimator</span>
+                </div>
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill" style="font-size: 10px;">AI</span>
+            </a>
+            <a href="/Progress" class="menu-item" style="border-radius: 12px;">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Tiến độ học</span>
+            </a>
+        </div>
+
+        <div class="sidebar-user p-3 mt-auto">
+            <div class="sidebar-user-card" style="padding: 16px; background: rgba(255,255,255,0.5); border-radius: 16px;">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="avatar" style="width: 40px; height: 40px; font-size: 16px; background: linear-gradient(135deg, #10B981, #3B82F6);">
+                        @((ViewBag.UserDisplayName as string ?? "H").Substring(0, 1).ToUpper())
+                    </div>
+                    <div class="sidebar-user-info ms-3 flex-grow-1">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <p class="fw-bold mb-0 text-dark" style="font-size: 14px;">@(ViewBag.UserDisplayName)</p>
+                            <p class="mb-0 text-success fw-bold" style="font-size: 12px;">Level @(ViewBag.UserLevel ?? 1)</p>
+                        }
+                        else
+                        {
+                            <p class="fw-bold mb-0 text-success" style="font-size: 12px;"><i class="fas fa-circle me-1" style="font-size: 8px;"></i>Guest</p>
+                            <p class="mb-0 text-dark fw-bold" style="font-size: 14px;">Khách</p>
+                        }
+                    </div>
+                </div>
+                
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    var xp = (int)(ViewBag.UserXP ?? 0);
+                    var xpInLevel = xp % 500;
+                    var pct = xpInLevel * 100 / 500;
+                    <div class="mt-2">
+                        <div class="d-flex justify-content-between text-secondary mb-1" style="font-size: 11px; font-weight: 600;">
+                            <span>XP</span>
+                            <span>@xpInLevel/500</span>
+                        </div>
+                        <div style="height: 6px; background: rgba(0,0,0,0.06); border-radius: 3px; overflow: hidden;">
+                            <div style="width: @pct%; height: 100%; background: linear-gradient(90deg, #10B981, #3B82F6);"></div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="mt-2 opacity-50">
+                        <div class="d-flex justify-content-between text-secondary mb-1" style="font-size: 11px; font-weight: 600;">
+                            <span>XP</span>
+                            <span>0/500</span>
+                        </div>
+                        <div style="height: 6px; background: rgba(0,0,0,0.06); border-radius: 3px; overflow: hidden;">
+                            <div style="width: 0%; height: 100%; background: linear-gradient(90deg, #10B981, #3B82F6);"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main-content">
+        <!-- Header -->
+        <header class="site-header">
+            <div class="header-greeting d-none d-lg-flex align-items-center gap-3">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <button class="btn btn-light" style="width: 48px; height: 48px; border-radius: 16px; background: white; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 12px rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-bars-staggered text-secondary fs-5"></i>
+                    </button>
+                }
+                else
+                {
+                    <div style="width: 48px; height: 48px; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; font-size: 24px;">🚀</div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div>
+                            <p class="mb-0 text-secondary" style="font-size: 13px; font-weight: 500;">Bắt đầu</p>
+                            <div class="d-flex align-items-start gap-1">
+                                <p class="mb-0 fw-bold text-dark" style="font-size: 16px;">Khám phá LingoTone</p>
+                                <i class="fa-solid fa-star-of-life text-success" style="font-size: 10px; margin-top: 2px;"></i>
+                            </div>
+                            <p class="mb-0 text-secondary mt-1" style="font-size: 13px;">Học tiếng Trung thông minh cùng AI</p>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Search Bar removed -->
+
+            <div class="header-stats d-flex align-items-center gap-2">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="d-none d-xl-flex align-items-center px-3" style="border-right: 1px solid rgba(0,0,0,0.05);">
+                        <i class="fa-solid fa-fire text-danger fs-5 me-2"></i>
+                        <div class="d-flex flex-column lh-1">
+                            <span class="fw-bold text-dark" style="font-size: 14px;">@(ViewBag.UserStreak ?? 0)</span>
+                            <span class="text-secondary" style="font-size: 11px; font-weight: 600;">Streak</span>
+                        </div>
+                    </div>
+                    
+                    <div class="d-none d-xl-flex align-items-center px-3" style="border-right: 1px solid rgba(0,0,0,0.05);">
+                        <i class="fa-solid fa-crown text-warning fs-5 me-2"></i>
+                        <div class="d-flex flex-column lh-1">
+                            <span class="fw-bold text-primary" style="font-size: 14px;">Lv.@(ViewBag.UserLevel ?? 1)</span>
+                            <span class="text-secondary" style="font-size: 11px; font-weight: 600;">Level</span>
+                        </div>
+                    </div>
+                    
+                    <div class="d-none d-xl-flex align-items-center px-3" style="border-right: 1px solid rgba(0,0,0,0.05);">
+                        <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(16,185,129,0.15); display: flex; align-items: center; justify-content: center; margin-right: 8px;">
+                            <i class="fa-solid fa-star text-success" style="font-size: 12px;"></i>
+                        </div>
+                        <div class="d-flex flex-column lh-1">
+                            <span class="fw-bold text-success" style="font-size: 14px;">@(ViewBag.UserXP ?? 0) XP</span>
+                            <span class="text-secondary" style="font-size: 11px; font-weight: 600;">Điểm XP</span>
+                        </div>
+                    </div>
+
+                    <!-- Bell removed -->
+
+                    <form asp-action="Logout" asp-controller="Account" method="post" class="m-0 p-0">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-light fw-bold px-3 d-flex align-items-center gap-2" style="height: 44px; border-radius: 14px; background: white; color: #1e293b; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 8px rgba(0,0,0,0.02);" title="Đăng xuất">
+                            <i class="fa-solid fa-arrow-right-from-bracket text-secondary"></i> Đăng xuất
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <!-- Bell removed -->
+
+                    <a href="/Account/Login" class="btn fw-bold px-4" style="border-radius: 999px; background: white; color: #1e293b; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 8px rgba(0,0,0,0.03); height: 44px; display: inline-flex; align-items: center;">Đăng nhập</a>
+                    <a href="/Account/Register" class="btn btn-primary fw-bold px-4" style="border-radius: 999px; background: linear-gradient(135deg, #10B981, #3B82F6); border: none; box-shadow: 0 8px 20px rgba(59,130,246,0.25); height: 44px; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-user-plus" style="font-size: 14px;"></i> Đăng ký
+                    </a>
+                }
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="page-content" id="main-page-content">
+            @RenderBody()
+        </main>
+    </div>
+</div>
+
+<partial name="_AuthRequiredModal" />
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    window.isAuthenticated = @(User.Identity?.IsAuthenticated == true ? "true" : "false");
+</script>
+
+<!-- Site JS -->
+<script src="~/js/site.js" asp-append-version="true"></script>
+
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

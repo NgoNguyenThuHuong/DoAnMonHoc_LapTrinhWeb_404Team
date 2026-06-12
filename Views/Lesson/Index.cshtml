@@ -1,0 +1,52 @@
+@model IEnumerable<LingoToneMVC.ViewModels.LessonGroupViewModel>
+@{
+    ViewData["Title"] = "Khóa học HSK";
+    var completedIds = ViewBag.CompletedLessonIds as List<int> ?? new List<int>();
+}
+
+<div class="animate-slide-in">
+    <h2 class="page-title">📚 Khóa học HSK</h2>
+
+    @foreach (var group in Model)
+    {
+        <div class="mb-5">
+            <h3 class="fw-bold mb-4" style="color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">@group.Title</h3>
+            <div class="lesson-grid">
+                @foreach (var lesson in group.Lessons)
+                {
+                    var isCompleted = completedIds.Contains(lesson.Id);
+
+                    <div class="glass-card lesson-card d-flex flex-column h-100" onclick="location.href='/Lesson/Detail/@lesson.Id'">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="lesson-number">@lesson.OrderIndex</div>
+                                <span class="hsk-badge">Bài @lesson.OrderIndex</span>
+                            </div>
+                            @if (isCompleted)
+                            {
+                                <div class="lesson-status completed m-0">
+                                    <i class="fa-solid fa-circle-check fs-5 text-success"></i>
+                                </div>
+                            }
+                        </div>
+
+                        <h3 class="fw-bold mb-2 fs-5 text-dark">@lesson.Title.Split(':')[1].Trim()</h3>
+                        <p class="text-secondary mb-4 flex-grow-1" style="font-size:14px;">@lesson.Description</p>
+
+                        <div class="d-flex gap-3 text-secondary mb-4" style="font-size: 13px; font-weight: 500;">
+                            <div><i class="fa-solid fa-spell-check text-success"></i> @(lesson.Vocabularies?.Count ?? 0) từ vựng</div>
+                        </div>
+
+                        <div class="progress-track mb-3" style="height: 6px; background: rgba(0,0,0,0.05);">
+                            <div class="progress-fill thin" style="width:@(isCompleted ? 100 : 0)%; background:@(isCompleted ? "linear-gradient(90deg, #10B981, #3B82F6)" : "")"></div>
+                        </div>
+                        
+                        <a href="/Lesson/Detail/@lesson.Id" class="btn btn-light fw-bold w-100" style="border-radius: 12px; font-size: 14px; background: rgba(15,23,42,0.04); border: none;">
+                            Vào học <i class="fa-solid fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>

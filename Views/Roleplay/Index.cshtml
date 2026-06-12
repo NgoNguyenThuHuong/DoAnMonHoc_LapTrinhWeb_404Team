@@ -1,0 +1,737 @@
+@{
+    ViewData["Title"] = "AI Roleplay Teacher";
+}
+
+@section Styles {
+    <style>
+        .roleplay-shell {
+            max-width: 1200px;
+            margin: 0 auto;
+            height: calc(100vh - 140px);
+            display: flex;
+            gap: 24px;
+        }
+
+        .scenario-menu {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+        }
+
+        .scenario-item {
+            padding: 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .scenario-item:hover {
+            background: rgba(0,0,0,0.02);
+            transform: translateY(-2px);
+        }
+
+        .scenario-item.active {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .scenario-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .chat-container {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .message {
+            display: flex;
+            gap: 16px;
+            max-width: 85%;
+        }
+
+        .message.ai {
+            align-self: flex-start;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            color: white;
+        }
+
+        .ai .message-avatar { background: linear-gradient(135deg, #10B981, #3B82F6); }
+        .user .message-avatar { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+
+        .message-bubble {
+            padding: 16px 20px;
+            border-radius: 20px;
+            position: relative;
+        }
+
+        .ai .message-bubble {
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-top-left-radius: 4px;
+        }
+
+        .user .message-bubble {
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+            color: white;
+            border-top-right-radius: 4px;
+        }
+
+        .message-text { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+        .message-pinyin { font-size: 14px; font-family: 'Inter', monospace; color: #10B981; margin-bottom: 4px; }
+        .message-meaning { font-size: 13px; color: #64748b; font-style: italic; }
+        
+        .user .message-pinyin { color: rgba(255,255,255,0.8); }
+        .user .message-meaning { color: rgba(255,255,255,0.6); }
+
+        .message-correction {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 12px;
+            border-left: 4px solid #EF4444;
+            font-size: 13px;
+            color: #b91c1c;
+        }
+
+        .chat-input-area {
+            padding: 24px;
+            background: white;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 12px;
+            background: rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 20px;
+            padding: 8px 16px;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .chat-input-wrapper:focus-within {
+            border-color: #3B82F6;
+            background: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        }
+
+        .chat-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 8px 0;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .btn-send {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #10B981, #3B82F6);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-send:hover { transform: scale(1.05); }
+
+        .chat-tools {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .tool-btn {
+            background: white;
+            border: 1px solid rgba(0,0,0,0.1);
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tool-btn:hover {
+            background: rgba(0,0,0,0.02);
+            border-color: #3B82F6;
+            color: #3B82F6;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 8px 12px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #94a3b8;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @@keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+}
+
+<div class="animate-fade-in roleplay-shell">
+    <!-- Left Menu -->
+    <div class="scenario-menu">
+        <h3 class="fw-bold mb-4" style="font-size: 18px; color: #1e293b;">
+            <i class="fa-solid fa-masks-theater text-primary me-2"></i>Chọn ngữ cảnh
+        </h3>
+
+        <div id="scenario-list">
+            <!-- Rendered via JS -->
+        </div>
+
+        <div class="mt-auto p-3 d-flex gap-3" style="background: rgba(16,185,129,0.05); border-radius: 16px;">
+            <i class="fa-solid fa-wand-magic-sparkles text-success mt-1"></i>
+            <p class="m-0 text-success" style="font-size: 12px; font-weight: 500;">AI sẽ tự động đánh giá ngữ pháp và độ lưu loát của bạn sau mỗi câu.</p>
+        </div>
+    </div>
+
+    <!-- Right Chat Area -->
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="d-flex align-items-center gap-3">
+                <div id="current-scenario-icon" style="width: 40px; height: 40px; background: rgba(59,130,246,0.1); color: #3B82F6; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold m-0" style="font-size: 16px;" id="current-scenario-title">Nhà hàng</h3>
+                    <p class="text-success m-0" style="font-size: 12px; font-weight: 500;"><i class="fas fa-circle me-1" style="font-size: 8px;"></i>AI đang trực tuyến</p>
+                </div>
+            </div>
+            <button class="btn btn-light rounded-pill px-4 fw-bold text-danger" style="font-size: 13px;" onclick="endConversation()">
+                <i class="fas fa-flag-checkered me-2"></i>Kết thúc
+            </button>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+            <!-- Messages go here -->
+        </div>
+
+        <div class="chat-input-area">
+            <div class="chat-tools">
+                <button class="tool-btn" onclick="suggestAnswer()">
+                    <i class="fas fa-lightbulb text-warning"></i> Gợi ý câu trả lời
+                </button>
+                <button class="tool-btn" onclick="fixGrammar()">
+                    <i class="fas fa-wrench text-primary"></i> Sửa ngữ pháp
+                </button>
+            </div>
+            <div class="chat-input-wrapper">
+                <i class="fas fa-keyboard text-secondary ms-2"></i>
+                <input type="text" class="chat-input" id="chat-input" placeholder="Nhập câu trả lời bằng tiếng Trung hoặc Pinyin..." onkeypress="if(event.key === 'Enter') sendMessage()" />
+                <button class="btn-send" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Evaluation Modal -->
+<div class="modal fade" id="evalModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 24px; border: none; overflow: hidden;">
+            <div class="modal-body p-0">
+                <div style="background: linear-gradient(135deg, #10B981, #3B82F6); padding: 40px 24px; text-align: center; color: white;">
+                    <i class="fas fa-clipboard-check mb-3" style="font-size: 48px;"></i>
+                    <h2 class="fw-bold mb-1">Đánh giá Hội thoại</h2>
+                    <p class="opacity-75 m-0">AI Roleplay Teacher</p>
+                </div>
+                <div class="p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold text-secondary">Từ vựng</span>
+                        <div class="d-flex gap-1" id="score-vocab"></div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold text-secondary">Ngữ pháp</span>
+                        <div class="d-flex gap-1" id="score-grammar"></div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <span class="fw-bold text-secondary">Tự nhiên</span>
+                        <div class="d-flex gap-1" id="score-fluency"></div>
+                    </div>
+                    
+                    <div class="p-3 mb-4 text-center" style="background: rgba(16,185,129,0.1); border-radius: 16px;">
+                        <h4 class="fw-bold text-success mb-1">Điểm tổng: HSK 2</h4>
+                        <p class="text-success m-0" style="font-size: 13px;">Bạn đã nhận được <strong class="text-warning">+30 XP</strong></p>
+                    </div>
+
+                    <button class="btn btn-primary w-100 py-3 fw-bold" style="border-radius: 16px;" data-bs-dismiss="modal">
+                        Tiếp tục luyện tập
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const scenarios = [
+        {
+            id: 'nhahang',
+            title: 'Nhà hàng',
+            icon: 'fa-utensils',
+            color: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+            desc: 'Gọi món và thanh toán',
+            aiStart: {
+                zh: '欢迎光临！请问您几位？',
+                py: 'Huānyíng guānglín! Qǐngwèn nín jǐ wèi?',
+                vi: 'Kính chào quý khách! Xin hỏi quý khách đi mấy người?'
+            },
+            tree: [
+                {
+                    keywords: ['两', '二', '三', '四', '人', '位', 'liǎng', 'èr', 'sān', 'sì'],
+                    response: {
+                        zh: '好的，这边请。这是菜单，您想吃点什么？',
+                        py: 'Hǎo de, zhè biān qǐng. Zhè shì càidān, nín xiǎng chī diǎn shénme?',
+                        vi: 'Vâng, mời đi lối này. Đây là thực đơn, quý khách muốn dùng gì ạ?'
+                    }
+                },
+                {
+                    keywords: ['面', '饭', '肉', '茶', '吃', '喝', 'miàn', 'fàn', 'ròu', 'chá'],
+                    response: {
+                        zh: '好的，还需要别的吗？要不要来点饮料？',
+                        py: 'Hǎo de, hái xūyào bié de ma? Yàobùyào lái diǎn yǐnliào?',
+                        vi: 'Vâng, quý khách còn cần gì nữa không? Có muốn dùng thêm đồ uống không ạ?'
+                    }
+                },
+                {
+                    keywords: ['买单', '多少钱', '结账', 'mǎidān', 'duōshǎo qián', 'jiézhàng'],
+                    response: {
+                        zh: '一共是一百二十块。请问您用微信还是支付宝？',
+                        py: 'Yígòng shì yībǎi èrshí kuài. Qǐngwèn nín yòng wēixìn háishì zhīfùbǎo?',
+                        vi: 'Tổng cộng là 120 tệ. Xin hỏi quý khách dùng WeChat hay Alipay?'
+                    }
+                }
+            ]
+        },
+        {
+            id: 'muasam',
+            title: 'Mua sắm',
+            icon: 'fa-bag-shopping',
+            color: 'linear-gradient(135deg, #ec4899, #8b5cf6)',
+            desc: 'Mặc cả giá',
+            aiStart: {
+                zh: '你好，你想买什么衣服？',
+                py: 'Nǐ hǎo, nǐ xiǎng mǎi shénme yīfu?',
+                vi: 'Xin chào, bạn muốn mua quần áo gì?'
+            },
+            tree: [
+                {
+                    keywords: ['多少钱', '贵', '便宜', 'mǎidān', 'duōshǎo qián', 'guì', 'piányi'],
+                    response: {
+                        zh: '这件衣服两百块。不贵，质量很好！',
+                        py: 'Zhè jiàn yīfu liǎng bǎi kuài. Bù guì, zhìliàng hěn hǎo!',
+                        vi: 'Bộ quần áo này 200 tệ. Không đắt đâu, chất lượng rất tốt!'
+                    }
+                }
+            ]
+        },
+        {
+            id: 'lamquen',
+            title: 'Làm quen',
+            icon: 'fa-handshake',
+            color: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+            desc: 'Hỏi thăm thông tin',
+            aiStart: {
+                zh: '你好！认识你很高兴。你叫什么名字？',
+                py: 'Nǐ hǎo! Rènshi nǐ hěn gāoxìng. Nǐ jiào shénme míngzi?',
+                vi: 'Xin chào! Rất vui được gặp bạn. Bạn tên là gì?'
+            },
+            tree: [
+                {
+                    keywords: ['我叫', '名字', 'wǒ jiào', 'míngzi'],
+                    response: {
+                        zh: '你的名字很好听！你是哪国人？',
+                        py: 'Nǐ de míngzi hěn hǎotīng! Nǐ shì nǎ guó rén?',
+                        vi: 'Tên của bạn rất hay! Bạn là người nước nào?'
+                    }
+                },
+                {
+                    keywords: ['越南', 'yuènán'],
+                    response: {
+                        zh: '哦，越南是个美丽的地方。你在哪里工作？',
+                        py: 'Ò, Yuènán shì gè měilì de dìfāng. Nǐ zài nǎlǐ gōngzuò?',
+                        vi: 'Ồ, Việt Nam là một nơi xinh đẹp. Bạn làm việc ở đâu?'
+                    }
+                }
+            ]
+        },
+        {
+            id: 'CNTT',
+            title: 'Phỏng vấn IT',
+            icon: 'fa-laptop-code',
+            color: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+            desc: 'Phỏng vấn xin việc lập trình',
+            aiStart: {
+                zh: '你好，请介绍一下你自己，还有你会什么编程语言？',
+                py: 'Nǐ hǎo, qǐng jièshào yīxià nǐ zìjǐ, háiyǒu nǐ huì shénme biānchéng yǔyán?',
+                vi: 'Xin chào, hãy giới thiệu bản thân, và bạn biết ngôn ngữ lập trình nào?'
+            },
+            tree: [
+                {
+                    keywords: ['我叫', '会', 'wǒ jiào', 'huì', 'C#', 'Java', 'Python'],
+                    response: {
+                        zh: '很好。你对数据库有什么了解吗？',
+                        py: 'Hěn hǎo. Nǐ duì shùjùkù yǒu shénme liǎojiě ma?',
+                        vi: 'Rất tốt. Bạn có hiểu biết gì về cơ sở dữ liệu không?'
+                    }
+                },
+                {
+                    keywords: ['数据库', 'SQL', 'shùjùkù'],
+                    response: {
+                        zh: '太棒了。如果服务器宕机了，你会怎么做？',
+                        py: 'Tài bàng le. Rúguǒ fúwùqì dàngjī le, nǐ huì zěnme zuò?',
+                        vi: 'Tuyệt vời. Nếu máy chủ bị sập, bạn sẽ làm thế nào?'
+                    }
+                }
+            ]
+        },
+        {
+            id: 'Logistics',
+            title: 'Kho bãi Logistics',
+            icon: 'fa-truck-fast',
+            color: 'linear-gradient(135deg, #10b981, #3b82f6)',
+            desc: 'Quản lý đơn hàng và vận chuyển',
+            aiStart: {
+                zh: '今天的订单都处理好了吗？物流公司什么时候来？',
+                py: 'Jīntiān de dìngdān dōu chǔlǐ hǎo le ma? Wùliú gōngsī shénme shíhòu lái?',
+                vi: 'Đơn hàng hôm nay đã xử lý xong chưa? Công ty vận chuyển khi nào đến?'
+            },
+            tree: [
+                {
+                    keywords: ['订单', '处理', '物流', 'dìngdān', 'chǔlǐ', 'wùliú'],
+                    response: {
+                        zh: '好的。仓库里还有多少货物？海关那边有没有问题？',
+                        py: 'Hǎo de. Cāngkù lǐ hái yǒu duōshǎo huòwù? Hǎiguān nàbiān yǒu méiyǒu wèntí?',
+                        vi: 'Được rồi. Trong kho còn bao nhiêu hàng? Bên hải quan có vấn đề gì không?'
+                    }
+                }
+            ]
+        },
+        {
+            id: 'Marketing',
+            title: 'Họp Marketing',
+            icon: 'fa-bullhorn',
+            color: 'linear-gradient(135deg, #f43f5e, #8b5cf6)',
+            desc: 'Bàn chiến dịch quảng cáo',
+            aiStart: {
+                zh: '大家早上好。我们来讨论一下下个月的广告活动。',
+                py: 'Dàjiā zǎoshang hǎo. Wǒmen lái tǎolùn yīxià xià gè yuè de guǎnggào huódòng.',
+                vi: 'Chào buổi sáng mọi người. Chúng ta hãy thảo luận về chiến dịch quảng cáo tháng sau.'
+            },
+            tree: [
+                {
+                    keywords: ['广告', '客户', '市场', 'guǎnggào', 'kèhù', 'shìchǎng'],
+                    response: {
+                        zh: '对，我们需要吸引更多的客户。品牌形象怎么提升？',
+                        py: 'Duì, wǒmen xūyào xíyǐn gèng duō de kèhù. Pǐnpái xíngxiàng zěnme tíshēng?',
+                        vi: 'Đúng, chúng ta cần thu hút nhiều khách hàng hơn. Hình ảnh thương hiệu làm sao để nâng tầm?'
+                    }
+                }
+            ]
+        },
+        {
+            id: 'KeToan',
+            title: 'Báo cáo Tài chính',
+            icon: 'fa-calculator',
+            color: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+            desc: 'Trao đổi về hóa đơn, chi phí',
+            aiStart: {
+                zh: '请把上个月的财务报表给我看一看。成本有没有增加？',
+                py: 'Qǐng bǎ shàng gè yuè de cáiwù bàobiǎo gěi wǒ kàn yī kàn. Chéngběn yǒu méiyǒu zēngjiā?',
+                vi: 'Làm ơn cho tôi xem báo cáo tài chính tháng trước. Chi phí có tăng không?'
+            },
+            tree: [
+                {
+                    keywords: ['报表', '成本', '增加', 'bàobiǎo', 'chéngběn', 'zēngjiā'],
+                    response: {
+                        zh: '明白。那发票和收入情况怎么样？',
+                        py: 'Míngbái. Nà fāpiào hé shōurù qíngkuàng zěnmeyàng?',
+                        vi: 'Tôi hiểu. Vậy tình hình hóa đơn và thu nhập thì sao?'
+                    }
+                }
+            ]
+        },
+        {
+            id: 'DuLich',
+            title: 'Dẫn tour du lịch',
+            icon: 'fa-plane-departure',
+            color: 'linear-gradient(135deg, #0ea5e9, #3b82f6)',
+            desc: 'Hướng dẫn khách tham quan',
+            aiStart: {
+                zh: '导游你好，请问我们今天去哪些景点？',
+                py: 'Dǎoyóu nǐhǎo, qǐngwèn wǒmen jīntiān qù nǎxiē jǐngdiǎn?',
+                vi: 'Chào hướng dẫn viên, xin hỏi hôm nay chúng ta đi những điểm tham quan nào?'
+            },
+            tree: [
+                {
+                    keywords: ['景点', '旅游', 'jǐngdiǎn', 'lǚyóu'],
+                    response: {
+                        zh: '太好了。那我们的机票和酒店都安排好了吗？',
+                        py: 'Tài hǎo le. Nà wǒmen de jīpiào hé jiǔdiàn dōu ānpái hǎo le ma?',
+                        vi: 'Tuyệt quá. Vậy vé máy bay và khách sạn của chúng ta đã được sắp xếp ổn thỏa chưa?'
+                    }
+                }
+            ]
+        }
+    ];
+
+    let currentScenarioId = 'nhahang';
+    let stepCount = 0;
+    let chatHistory = [];
+
+    function initMenu() {
+        const list = document.getElementById('scenario-list');
+        list.innerHTML = scenarios.map(s => `
+            <div class="scenario-item ${s.id === currentScenarioId ? 'active' : ''}" onclick="selectScenario('${s.id}')">
+                <div class="scenario-icon" style="background: ${s.color}">
+                    <i class="fa-solid ${s.icon}"></i>
+                </div>
+                <div>
+                    <h4 class="m-0 fw-bold text-dark" style="font-size: 14px;">${s.title}</h4>
+                    <p class="m-0 text-secondary" style="font-size: 12px;">${s.desc}</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function selectScenario(id) {
+        currentScenarioId = id;
+        stepCount = 0;
+        chatHistory = [];
+        initMenu();
+        const s = scenarios.find(x => x.id === id);
+        
+        document.getElementById('current-scenario-title').innerText = s.title;
+        document.getElementById('current-scenario-icon').innerHTML = `<i class="fa-solid ${s.icon}"></i>`;
+        
+        document.getElementById('chat-messages').innerHTML = '';
+        appendAIMessage(s.aiStart.zh, s.aiStart.py, s.aiStart.vi);
+        chatHistory.push({ role: "ai", content: s.aiStart.zh });
+    }
+
+    function appendAIMessage(zh, py, vi, correction = null) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message ai animate-slide-in';
+        
+        let html = `
+            <div class="message-avatar"><i class="fas fa-robot"></i></div>
+            <div class="message-bubble">
+                <div class="message-text text-dark">${zh}</div>
+                <div class="message-pinyin">${py}</div>
+                <div class="message-meaning">${vi}</div>
+        `;
+        
+        if (correction) {
+            html += `<div class="message-correction"><i class="fas fa-exclamation-triangle me-1"></i> <strong>Gợi ý sửa lỗi:</strong> ${correction}</div>`;
+        }
+        
+        html += `</div>`;
+        msgDiv.innerHTML = html;
+        
+        document.getElementById('chat-messages').appendChild(msgDiv);
+        scrollToBottom();
+    }
+
+    function appendUserMessage(text) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message user animate-slide-in';
+        msgDiv.innerHTML = `
+            <div class="message-avatar">@((ViewBag.UserDisplayName as string ?? "H").Substring(0, 1).ToUpper())</div>
+            <div class="message-bubble">
+                <div class="message-text">${text}</div>
+            </div>
+        `;
+        document.getElementById('chat-messages').appendChild(msgDiv);
+        scrollToBottom();
+    }
+
+    function showTyping() {
+        const id = 'typing-' + Date.now();
+        const msgDiv = document.createElement('div');
+        msgDiv.id = id;
+        msgDiv.className = 'message ai animate-slide-in';
+        msgDiv.innerHTML = `
+            <div class="message-avatar"><i class="fas fa-robot"></i></div>
+            <div class="message-bubble d-flex align-items-center" style="height: 48px;">
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        `;
+        document.getElementById('chat-messages').appendChild(msgDiv);
+        scrollToBottom();
+        return id;
+    }
+
+    function scrollToBottom() {
+        const container = document.getElementById('chat-messages');
+        container.scrollTop = container.scrollHeight;
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+        
+        appendUserMessage(text);
+        chatHistory.push({ role: "user", content: text });
+        input.value = '';
+        
+        const typingId = showTyping();
+        const s = scenarios.find(x => x.id === currentScenarioId);
+        
+        try {
+            const response = await fetch('/Ai/ChatRoleplay', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    scenario: s.title + ' - ' + s.desc,
+                    history: chatHistory.slice(-6), // Send last 6 messages
+                    userMessage: text
+                })
+            });
+            const data = await response.json();
+            
+            document.getElementById(typingId).remove();
+            
+            if (data.zh) {
+                appendAIMessage(data.zh, data.py, data.vi, data.correction);
+                chatHistory.push({ role: "ai", content: data.zh });
+            } else {
+                appendAIMessage('Xin lỗi, tôi không thể kết nối tới máy chủ.', '', '', null);
+            }
+        } catch (error) {
+            document.getElementById(typingId).remove();
+            appendAIMessage('Lỗi kết nối mạng.', '', '', null);
+            console.error(error);
+        }
+    }
+
+    function endConversation() {
+        // Mock evaluation
+        const renderStars = (score) => {
+            return Array(5).fill(0).map((_, i) => `<i class="fas fa-star ${i < score ? 'text-warning' : 'text-secondary opacity-25'}"></i>`).join('');
+        };
+        
+        document.getElementById('score-vocab').innerHTML = renderStars(4);
+        document.getElementById('score-grammar').innerHTML = renderStars(3);
+        document.getElementById('score-fluency').innerHTML = renderStars(4);
+        
+        var evalModal = new bootstrap.Modal(document.getElementById('evalModal'));
+        evalModal.show();
+    }
+
+    function suggestAnswer() {
+        const input = document.getElementById('chat-input');
+        const s = scenarios.find(x => x.id === currentScenarioId);
+        if (s.tree && stepCount < s.tree.length) {
+            input.value = s.tree[stepCount].keywords[0];
+        } else {
+            input.value = '谢谢！';
+        }
+    }
+
+    function fixGrammar() {
+        alert('Tính năng đang phân tích câu của bạn bằng AI Engine...');
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const career = urlParams.get('career');
+        if (career && scenarios.find(x => x.id === career)) {
+            selectScenario(career);
+        } else {
+            selectScenario('nhahang');
+        }
+    });
+</script>
+}

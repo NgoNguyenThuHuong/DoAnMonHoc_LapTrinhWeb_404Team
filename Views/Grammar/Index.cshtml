@@ -1,0 +1,54 @@
+@model IEnumerable<LingoToneMVC.Models.GrammarPoint>
+@{
+    ViewData["Title"] = "Ngữ pháp Boya";
+    var grammarList = Model.ToList();
+}
+
+<div class="animate-slide-in">
+    <h2 class="page-title">📝 Ngữ pháp Boya</h2>
+
+    <div class="row g-4">
+        <!-- Grammar List -->
+        <div class="col-lg-8">
+            <div class="d-flex flex-column gap-3">
+                @foreach (var g in grammarList)
+                {
+                    <div class="glass-card grammar-card p-4 d-flex flex-column gap-2" style="border-radius: 20px;">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h3 class="fw-bold fs-5 text-dark m-0">@g.Title</h3>
+                            <span class="hsk-badge">Bài @g.Lesson?.OrderIndex</span>
+                        </div>
+                        
+                        <div class="p-3 mb-2" style="background: rgba(16,185,129,0.08); border-radius: 12px; border-left: 4px solid #10B981;">
+                            <strong class="text-success" style="font-size: 16px;">Cấu trúc: </strong>
+                            <span class="fw-bold" style="font-size: 16px; color: #1e293b;">@g.Pattern</span>
+                        </div>
+
+                        <div class="fw-bold" style="font-size: 18px; color: #111827;">@g.Example</div>
+                        <div class="text-success fw-bold">@g.ExamplePinyin</div>
+                        <div class="text-secondary">@g.ExampleMeaning</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- AI Grammar Corrector -->
+        <div class="col-lg-4">
+            <div class="glass-card p-4" style="position: sticky; top: 24px; border-radius: 20px;">
+                <h3 class="fw-bold mb-4" style="font-size: 18px;">
+                    <i class="fa-solid fa-robot text-primary me-2"></i> AI Sửa Lỗi Ngữ Pháp
+                </h3>
+
+                <div id="ai-grammar-container">
+                    <p class="mb-3 text-secondary" style="font-size: 14px;">Nhập câu tiếng Trung của bạn để AI kiểm tra (VD: 我昨天去学校了):</p>
+                    <textarea id="grammar-input" class="form-control mb-3" rows="3" placeholder="Nhập câu tiếng Trung..."></textarea>
+                    
+                    <button class="btn btn-primary w-100 fw-bold py-2 rounded-3 mb-3" onclick="correctGrammarInput()">Kiểm tra với AI</button>
+
+                    <div id="grammar-result" style="display:none;" class="p-3 bg-light rounded-3 border">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

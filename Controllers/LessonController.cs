@@ -8,6 +8,8 @@ using LingoToneMVC.ViewModels;
 using System.Text.Json;
 using System.IO;
 
+using LingoToneMVC.Services;
+
 namespace LingoToneMVC.Controllers
 {
     public class HskWordDto
@@ -23,70 +25,39 @@ namespace LingoToneMVC.Controllers
     {
         public List<string> eng { get; set; }
     }
+
     public class LessonController : Controller
     {
         private readonly AppDbContext _db;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly HskLessonService _hskLessonService;
 
-        public LessonController(AppDbContext db, UserManager<ApplicationUser> userManager)
+        public LessonController(AppDbContext db, UserManager<ApplicationUser> userManager, HskLessonService hskLessonService)
         {
             _db = db;
             _userManager = userManager;
-        }
-
-        private string? GetVietnameseMeaning(string hanzi)
-        {
-            var dictionary = new Dictionary<string, string>
-            {
-                { "大", "lớn, to" },
-                { "爱", "yêu, thích" },
-                { "的", "của (trợ từ sở hữu)" },
-                { "我", "tôi, mình" },
-                { "你", "bạn, cậu" },
-                { "好", "tốt, khỏe" },
-                { "是", "là" },
-                { "不", "không" },
-                { "人", "người" },
-                { "很", "rất" }
-            };
-            if (dictionary.TryGetValue(hanzi, out var meaning)) return meaning;
-            return null;
+            _hskLessonService = hskLessonService;
         }
 
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "hsk.json");
-            var json = await System.IO.File.ReadAllTextAsync(jsonPath);
-            var hskData = JsonSerializer.Deserialize<List<HskWordDto>>(json) ?? new List<HskWordDto>();
-
-            var groups = new List<LessonGroupViewModel>();
+            var lessons = await _hskLessonService.GetAllHskLessonsAsync();
             var titles = new[] { "Cơ bản", "Sơ cấp", "Tiền trung cấp", "Trung cấp", "Cao cấp", "Thành thạo" };
-            var lessonNames = new[] { "Từ vựng nền tảng", "Giao tiếp cơ bản", "Gia đình & con người", "Thời gian & thời tiết", "Ăn uống & sở thích", "Mua sắm & du lịch", "Công việc & học tập", "Sở thích 2", "Mở rộng 1", "Mở rộng 2", "Mở rộng 3" };
+            var groups = new List<LessonGroupViewModel>();
 
             for (int i = 1; i <= 6; i++)
             {
-                var levelWords = hskData.Where(w => w.level == i).ToList();
-                if (!levelWords.Any()) continue;
+                var levelLessons = lessons.Where(l => l.HskLevel == i.ToString()).ToList();
+                if (!levelLessons.Any()) continue;
 
-                var group = new LessonGroupViewModel { Level = i, Title = $"HSK {i}: {titles[i - 1]}" };
-                int chunks = (int)Math.Ceiling(levelWords.Count / 15.0);
-
-                for (int j = 0; j < chunks; j++)
-                {
-                    var chunkWords = levelWords.Skip(j * 15).Take(15).ToList();
-                    var name = j < lessonNames.Length ? lessonNames[j] : $"Chủ đề {j + 1}";
-                    group.Lessons.Add(new Lesson
-                    {
-                        Id = i * 1000 + (j + 1), // Format: 1001, 2005, etc.
-                        Title = $"Bài {j + 1}: {name}",
-                        Description = $"Chinh phục {chunkWords.Count} từ vựng",
-                        OrderIndex = j + 1,
-                        Vocabularies = Enumerable.Repeat(new Vocabulary(), chunkWords.Count).ToList(),
-                        GrammarPoints = new List<GrammarPoint>()
-                    });
-                }
+                var group = new LessonGroupViewModel 
+                { 
+                    Level = i, 
+                    Title = $"HSK {i}: {titles[i - 1]}" 
+                };
+                group.Lessons.AddRange(levelLessons);
                 groups.Add(group);
             }
 
@@ -159,35 +130,9 @@ namespace LingoToneMVC.Controllers
             }
 
             int level = id / 1000;
-            int lessonIndex = (id % 1000) - 1;
+            var lesson = await _hskLessonService.GetHskLessonByIdAsync(id);
 
-            var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "hsk.json");
-            var json = await System.IO.File.ReadAllTextAsync(jsonPath);
-            var hskData = JsonSerializer.Deserialize<List<HskWordDto>>(json) ?? new List<HskWordDto>();
-
-            var levelWords = hskData.Where(w => w.level == level).ToList();
-            var words = levelWords.Skip(lessonIndex * 15).Take(15).ToList();
-
-            if (!words.Any()) return NotFound();
-
-            var lessonNames = new[] { "Từ vựng nền tảng", "Giao tiếp cơ bản", "Gia đình & con người", "Thời gian & thời tiết", "Ăn uống & sở thích", "Mua sắm & du lịch", "Công việc & học tập", "Sở thích 2", "Mở rộng 1", "Mở rộng 2", "Mở rộng 3" };
-            var name = lessonIndex < lessonNames.Length ? lessonNames[lessonIndex] : $"Chủ đề {lessonIndex + 1}";
-
-            var lesson = new Lesson
-            {
-                Id = id,
-                Title = $"Bài {lessonIndex + 1}: {name}",
-                Description = $"Chinh phục {words.Count} từ vựng",
-                OrderIndex = lessonIndex + 1,
-                Vocabularies = words.Select(w => new Vocabulary
-                {
-                    Chinese = w.hanzi,
-                    Pinyin = w.pinyin,
-                    Vietnamese = GetVietnameseMeaning(w.hanzi) ?? "Đang dịch..."
-                }).ToList(),
-                GrammarPoints = new List<GrammarPoint>(),
-                Dialogues = new List<Dialogue>()
-            };
+            if (lesson == null) return NotFound();
 
             EnsureLessonContent(lesson, level);
 

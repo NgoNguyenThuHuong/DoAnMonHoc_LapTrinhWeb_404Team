@@ -47,6 +47,7 @@ builder.Services.AddSession(options =>
 
 // Seeders
 builder.Services.AddTransient<LingoToneMVC.Services.DataSeeder>();
+builder.Services.AddScoped<LingoToneMVC.Services.HskLessonService>();
 
 var app = builder.Build();
 

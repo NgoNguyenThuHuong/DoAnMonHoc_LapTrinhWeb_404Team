@@ -6,7 +6,7 @@ namespace LingoToneMVC.Models
     public class Dialogue
     {
         public int Id { get; set; }
-        
+
         public int LessonId { get; set; }
 
         [Required]

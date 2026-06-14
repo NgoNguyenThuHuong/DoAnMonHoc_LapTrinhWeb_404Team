@@ -40,7 +40,7 @@ namespace LingoToneMVC.Services
                                 HskLevel = element.TryGetProperty("level", out var l) ? (l.ValueKind == JsonValueKind.Number ? l.GetInt32().ToString() : l.GetString() ?? "") : "",
                                 Radical = element.TryGetProperty("radicals", out var rad) ? rad.GetString() : (element.TryGetProperty("radical", out var rad2) ? rad2.GetString() : null)
                             };
-                            
+
                             if (element.TryGetProperty("strokes", out var stk) && stk.ValueKind == JsonValueKind.Number)
                             {
                                 word.StrokeCount = stk.GetInt32();
@@ -49,7 +49,7 @@ namespace LingoToneMVC.Services
                             {
                                 word.StrokeCount = s;
                             }
-                            
+
                             // fallback for meaning if meaning is empty but translations.eng exists
                             if (string.IsNullOrEmpty(word.MeaningEnglish) && element.TryGetProperty("translations", out var trans) && trans.TryGetProperty("eng", out var eng) && eng.ValueKind == JsonValueKind.Array && eng.GetArrayLength() > 0)
                             {

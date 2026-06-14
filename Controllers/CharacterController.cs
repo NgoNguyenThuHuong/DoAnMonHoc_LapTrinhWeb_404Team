@@ -53,7 +53,7 @@ namespace LingoToneMVC.Controllers
             if (!string.IsNullOrEmpty(search))
             {
                 string searchLower = search.ToLower();
-                query = query.Where(w => 
+                query = query.Where(w =>
                     w.Hanzi.Contains(searchLower) ||
                     w.Pinyin.ToLower().Contains(searchLower) ||
                     w.MeaningVietnamese.ToLower().Contains(searchLower) ||
@@ -63,7 +63,7 @@ namespace LingoToneMVC.Controllers
 
             int totalItems = await query.CountAsync();
             int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-            
+
             if (page < 1) page = 1;
             if (page > totalPages && totalPages > 0) page = totalPages;
 
@@ -90,16 +90,18 @@ namespace LingoToneMVC.Controllers
             var compounds = await _db.HskWords
                                    .Where(c => c.Hanzi.Length > 1 && c.Hanzi.Contains(hanzi))
                                    .Take(5)
-                                   .Select(c => new { 
-                                       word = c.Hanzi, 
-                                       pinyin = c.Pinyin, 
-                                       meaning = !string.IsNullOrEmpty(c.MeaningVietnamese) ? c.MeaningVietnamese : c.MeaningEnglish 
+                                   .Select(c => new
+                                   {
+                                       word = c.Hanzi,
+                                       pinyin = c.Pinyin,
+                                       meaning = !string.IsNullOrEmpty(c.MeaningVietnamese) ? c.MeaningVietnamese : c.MeaningEnglish
                                    })
                                    .ToListAsync();
 
             string primaryMeaning = !string.IsNullOrEmpty(charInfo.MeaningVietnamese) ? charInfo.MeaningVietnamese : charInfo.MeaningEnglish;
 
-            return Json(new {
+            return Json(new
+            {
                 hanzi = charInfo.Hanzi,
                 pinyin = charInfo.Pinyin,
                 meaning = primaryMeaning,

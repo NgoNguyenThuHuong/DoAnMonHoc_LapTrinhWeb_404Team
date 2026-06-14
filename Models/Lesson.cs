@@ -14,7 +14,7 @@ namespace LingoToneMVC.Models
         public string Description { get; set; } = string.Empty;
 
         public int OrderIndex { get; set; }
-        
+
         [MaxLength(20)]
         public string HskLevel { get; set; } = string.Empty;
 

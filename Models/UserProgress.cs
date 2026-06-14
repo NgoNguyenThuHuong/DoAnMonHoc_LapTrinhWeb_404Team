@@ -17,13 +17,13 @@ namespace LingoToneMVC.Models
         public DateTime? CompletedAt { get; set; }
 
         public int XpEarned { get; set; } = 0;
-        
+
         public int CompletionPercent { get; set; } = 0;
-        
+
         public int XP { get; set; } = 0;
-        
+
         public int Streak { get; set; } = 0;
-        
+
         public DateTime? LastStudyDate { get; set; }
 
         [ForeignKey(nameof(UserId))]

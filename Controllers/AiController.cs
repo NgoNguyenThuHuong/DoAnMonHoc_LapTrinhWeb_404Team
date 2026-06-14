@@ -87,7 +87,7 @@ namespace LingoToneMVC.Controllers
                     await Task.Delay(2000 * (i + 1));
                 }
             }
-            
+
             return (false, null, "Đã thử nhiều lần nhưng không thành công.");
         }
 
@@ -132,7 +132,8 @@ Cấu trúc JSON:
             return Json(new { success = false, analysis = "Lỗi", story = error });
         }
 
-        public class CareerRoadmapRequest {
+        public class CareerRoadmapRequest
+        {
             public string career { get; set; }
             public string level { get; set; }
             public string goal { get; set; }
@@ -285,7 +286,7 @@ Trả về JSON. Không markdown. Chú ý: correctedHtml phải dùng thẻ <spa
 }}";
             var (success, aiText, error) = await CallGeminiApiAsync(prompt, 800);
             if (success) return Content(aiText, "application/json");
-            
+
             // Fallback for demo when API limits are reached
             string safeText = req.text.Replace("\"", "\\\"").Replace("\n", " ").Replace("\r", "");
             var fallbackJson = $@"{{
@@ -342,7 +343,7 @@ Trả về JSON. Không markdown.
 }}";
             var (success, aiText, error) = await CallGeminiApiAsync(prompt, 400);
             if (success) return Content(aiText, "application/json");
-            
+
             // Fallback for demo when API limits are reached
             var fallbackJson = @"{
               ""estimatedLevel"": ""HSK 2"",
@@ -438,7 +439,7 @@ Ví dụ nếu chữ là '好':
 ";
 
             var (success, aiText, error) = await CallGeminiApiAsync(prompt, 300);
-            
+
             if (success)
             {
                 // Remove markdown code blocks if gemini still adds them

@@ -1,0 +1,53 @@
+@model IEnumerable<LingoToneMVC.Models.Lesson>
+@{
+    ViewData["Title"] = "Quản lý bài học";
+}
+
+<div class="animate-fade-in">
+    <div class="d-flex align-items-center mb-4">
+        <a asp-controller="Admin" asp-action="Index" class="btn btn-light me-3" style="border-radius:12px;">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="fw-bold m-0" style="font-size:22px;color:#1e293b;">Quản lý bài học</h2>
+            <p class="text-secondary m-0" style="font-size:13px;">@Model.Count() bài học trong hệ thống</p>
+        </div>
+    </div>
+
+    <div class="glass-card card" style="border-radius:24px;padding:24px;">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr style="font-size:13px;color:#64748b;font-weight:600;">
+                        <th>ID</th>
+                        <th>Tên bài học</th>
+                        <th>Cấp HSK</th>
+                        <th>Số từ vựng</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var lesson in Model)
+                    {
+                        <tr>
+                            <td class="text-secondary" style="font-size:13px;">#@lesson.Id</td>
+                            <td class="fw-bold" style="font-size:14px;">@lesson.Title</td>
+                            <td>
+                                <span class="badge bg-success bg-opacity-10 text-success" style="border-radius:8px;font-size:12px;">
+                                    HSK @(string.IsNullOrEmpty(lesson.HskLevel) ? "–" : lesson.HskLevel)
+                                </span>
+                            </td>
+                            <td class="fw-bold">@(lesson.Vocabularies?.Count ?? 0)</td>
+                            <td>
+                                <a asp-controller="Lesson" asp-action="Detail" asp-route-id="@lesson.Id"
+                                   class="btn btn-sm btn-light" style="border-radius:8px;font-size:12px;" target="_blank">
+                                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Xem
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

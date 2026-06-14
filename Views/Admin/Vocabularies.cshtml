@@ -1,0 +1,54 @@
+@model IEnumerable<LingoToneMVC.Models.Vocabulary>
+@{
+    ViewData["Title"] = "Quản lý từ vựng";
+}
+
+<div class="animate-fade-in">
+    <div class="d-flex align-items-center mb-4">
+        <a asp-controller="Admin" asp-action="Index" class="btn btn-light me-3" style="border-radius:12px;">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="fw-bold m-0" style="font-size:22px;color:#1e293b;">Quản lý từ vựng</h2>
+            <p class="text-secondary m-0" style="font-size:13px;">Hiển thị 200 từ vựng gần nhất</p>
+        </div>
+    </div>
+
+    <div class="glass-card card" style="border-radius:24px;padding:24px;">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr style="font-size:13px;color:#64748b;font-weight:600;">
+                        <th>Chữ Hán</th>
+                        <th>Pinyin</th>
+                        <th>Nghĩa tiếng Việt</th>
+                        <th>Bài học</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var v in Model)
+                    {
+                        var hasVietnamese = !string.IsNullOrEmpty(v.Vietnamese) && v.Vietnamese != "Đang dịch...";
+                        <tr>
+                            <td class="fw-bold" style="font-size:20px;">@v.Chinese</td>
+                            <td class="text-secondary" style="font-size:14px;">@v.Pinyin</td>
+                            <td>
+                                @if (hasVietnamese)
+                                {
+                                    <span style="font-size:14px;">@v.Vietnamese</span>
+                                }
+                                else
+                                {
+                                    <span class="text-warning" style="font-size:13px;">
+                                        <i class="fa-solid fa-triangle-exclamation me-1"></i>@(v.Vietnamese ?? "–")
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-secondary" style="font-size:13px;">#@v.LessonId @(v.Lesson?.Title)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -91,6 +91,18 @@
                 <i class="fa-solid fa-chart-line"></i>
                 <span>Tiến độ học</span>
             </a>
+
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="text-secondary fw-bold mt-4 mb-2 ps-3" style="font-size: 11px; letter-spacing: 0.5px;">QUẢN TRỊ</div>
+                <a href="/Admin" class="menu-item @(Context.Request.Path.Value?.StartsWith("/Admin") == true ? "active" : "") d-flex justify-content-between align-items-center" style="border-radius: 12px;">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Quản trị hệ thống</span>
+                    </div>
+                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill" style="font-size: 10px;">Admin</span>
+                </a>
+            }
         </div>
 
         <div class="sidebar-user p-3 mt-auto">

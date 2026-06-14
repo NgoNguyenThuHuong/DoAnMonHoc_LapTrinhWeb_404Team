@@ -1,5 +1,6 @@
 using LingoToneMVC.Data;
 using LingoToneMVC.Models;
+using Microsoft.AspNetCore.Identity;
 using System.Text.Json;
 
 namespace LingoToneMVC.Services
@@ -8,15 +9,23 @@ namespace LingoToneMVC.Services
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public DataSeeder(AppDbContext context, IWebHostEnvironment env)
+        public DataSeeder(AppDbContext context, IWebHostEnvironment env,
+            UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager)
         {
             _context = context;
             _env = env;
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         public async Task SeedAsync()
         {
+            await SeedRolesAndAdminAsync();
+
             try
             {
                 if (!_context.HskWords.Any())
@@ -72,6 +81,48 @@ namespace LingoToneMVC.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Error seeding data: {ex.Message}");
+            }
+        }
+
+        private async Task SeedRolesAndAdminAsync()
+        {
+            // Seed roles
+            string[] roles = { "Admin", "User" };
+            foreach (var role in roles)
+            {
+                if (!await _roleManager.RoleExistsAsync(role))
+                    await _roleManager.CreateAsync(new IdentityRole(role));
+            }
+
+            // Seed default admin account
+            const string adminEmail = "admin@lingotone.vn";
+            const string adminPassword = "Admin@123";
+
+            var adminUser = await _userManager.FindByEmailAsync(adminEmail);
+            if (adminUser == null)
+            {
+                adminUser = new ApplicationUser
+                {
+                    UserName = adminEmail,
+                    Email = adminEmail,
+                    DisplayName = "Admin",
+                    EmailConfirmed = true,
+                    XP = 0,
+                    Level = 1,
+                    Streak = 0,
+                    LastLoginDate = DateTime.Today
+                };
+
+                var result = await _userManager.CreateAsync(adminUser, adminPassword);
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(adminUser, "Admin");
+                    Console.WriteLine("Default admin account created: admin@lingotone.vn");
+                }
+            }
+            else if (!await _userManager.IsInRoleAsync(adminUser, "Admin"))
+            {
+                await _userManager.AddToRoleAsync(adminUser, "Admin");
             }
         }
     }

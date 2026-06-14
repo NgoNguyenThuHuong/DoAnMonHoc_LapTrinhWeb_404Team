@@ -1,0 +1,46 @@
+@model IEnumerable<LingoToneMVC.Models.QuizQuestion>
+@{
+    ViewData["Title"] = "Quản lý Quiz";
+}
+
+<div class="animate-fade-in">
+    <div class="d-flex align-items-center mb-4">
+        <a asp-controller="Admin" asp-action="Index" class="btn btn-light me-3" style="border-radius:12px;">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="fw-bold m-0" style="font-size:22px;color:#1e293b;">Quản lý Quiz</h2>
+            <p class="text-secondary m-0" style="font-size:13px;">@Model.Count() câu hỏi trong hệ thống</p>
+        </div>
+    </div>
+
+    <div class="glass-card card" style="border-radius:24px;padding:24px;">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr style="font-size:13px;color:#64748b;font-weight:600;">
+                        <th>Câu hỏi</th>
+                        <th>Loại</th>
+                        <th>Đáp án đúng</th>
+                        <th>XP</th>
+                        <th>Bài học</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var q in Model)
+                    {
+                        <tr>
+                            <td style="font-size:14px;max-width:300px;">@q.Question</td>
+                            <td>
+                                <span class="badge bg-primary bg-opacity-10 text-primary" style="border-radius:8px;font-size:12px;">@q.QuestionType</span>
+                            </td>
+                            <td class="fw-bold text-success">@q.CorrectAnswer</td>
+                            <td class="text-warning fw-bold">+@q.XpReward</td>
+                            <td class="text-secondary" style="font-size:13px;">@(q.Lesson?.Title ?? $"#{ q.LessonId}")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

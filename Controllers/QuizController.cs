@@ -21,20 +21,39 @@ namespace LingoToneMVC.Controllers
             _userManager = userManager;
         }
 
+        private string? GetVietnameseMeaning(string hanzi)
+        {
+            var dictionary = new Dictionary<string, string>
+            {
+                { "大", "lớn, to" },
+                { "爱", "yêu, thích" },
+                { "的", "của (trợ từ sở hữu)" },
+                { "我", "tôi, mình" },
+                { "你", "bạn, cậu" },
+                { "好", "tốt, khỏe" },
+                { "是", "là" },
+                { "不", "không" },
+                { "人", "người" },
+                { "很", "rất" }
+            };
+            if (dictionary.TryGetValue(hanzi, out var meaning)) return meaning;
+            return null;
+        }
+
         private async Task<Lesson?> GetLessonAsync(int id)
         {
             if (id < 1000)
             {
                 return await _db.Lessons.Include(l => l.Vocabularies).FirstOrDefaultAsync(l => l.Id == id);
             }
-            
+
             int level = id / 1000;
             int lessonIndex = (id % 1000) - 1;
-            
+
             var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "hsk.json");
             var json = await System.IO.File.ReadAllTextAsync(jsonPath);
             var hskData = JsonSerializer.Deserialize<List<HskWordDto>>(json) ?? new List<HskWordDto>();
-            
+
             var levelWords = hskData.Where(w => w.level == level).ToList();
             var words = levelWords.Skip(lessonIndex * 15).Take(15).ToList();
 
@@ -43,14 +62,16 @@ namespace LingoToneMVC.Controllers
             var lessonNames = new[] { "Từ vựng nền tảng", "Giao tiếp cơ bản", "Gia đình & con người", "Thời gian & thời tiết", "Ăn uống & sở thích", "Mua sắm & du lịch", "Công việc & học tập", "Sở thích 2", "Mở rộng 1", "Mở rộng 2", "Mở rộng 3" };
             var name = lessonIndex < lessonNames.Length ? lessonNames[lessonIndex] : $"Chủ đề {lessonIndex + 1}";
 
-            return new Lesson {
+            return new Lesson
+            {
                 Id = id,
                 Title = $"Bài {lessonIndex + 1}: {name}",
                 HskLevel = $"HSK {level}",
-                Vocabularies = words.Select(w => new Vocabulary {
+                Vocabularies = words.Select(w => new Vocabulary
+                {
                     Chinese = w.hanzi,
                     Pinyin = w.pinyin,
-                    Vietnamese = w.translations?.eng?.FirstOrDefault() ?? "Từ vựng"
+                    Vietnamese = GetVietnameseMeaning(w.hanzi) ?? ""
                 }).ToList()
             };
         }
@@ -68,9 +89,14 @@ namespace LingoToneMVC.Controllers
                 || lower.Contains("old variant")
                 || lower.Contains("you are")
                 || lower.Contains("you're")
+                || lower.Contains("you're welcome")
                 || lower.Contains("highest")
+                || lower.Contains("to go to bed")
                 || lower.Contains("brother")
-                || lower.Contains("sister");
+                || lower.Contains("sister")
+                || lower == "big"
+                || lower.Contains("english")
+                || lower.Contains("definition");
         }
 
         private async Task<List<QuizQuestion>> GenerateQuizFromVocab(Lesson lesson)
@@ -82,15 +108,15 @@ namespace LingoToneMVC.Controllers
             var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "hsk.json");
             var json = await System.IO.File.ReadAllTextAsync(jsonPath);
             var hskData = JsonSerializer.Deserialize<List<HskWordDto>>(json) ?? new List<HskWordDto>();
-            
+
             // Filter to same level for better distractors
             int level = lesson.Id >= 1000 ? lesson.Id / 1000 : 1;
             var levelData = hskData.Where(w => w.level == level).ToList();
             if (!levelData.Any()) levelData = hskData; // fallback
 
-            // Fetch all vocabularies from DB for Vietnamese distractors
+            // Fetch all vocabularies from DB for Vietnamese distractors (exclude 'Đang dịch...' and empty)
             var allVocabs = await _db.Vocabularies
-                .Where(v => !string.IsNullOrEmpty(v.Vietnamese))
+                .Where(v => !string.IsNullOrEmpty(v.Vietnamese) && v.Vietnamese != "Đang dịch...")
                 .Select(v => v.Vietnamese)
                 .Distinct()
                 .ToListAsync();
@@ -105,19 +131,19 @@ namespace LingoToneMVC.Controllers
             foreach (var v in vocabs)
             {
                 bool askPinyin = random.Next(2) == 0;
-                
-                // FORCE Pinyin question if the meaning in DB accidentally contains English
-                if (!askPinyin && LooksLikeEnglishMeaning(v.Vietnamese))
+
+                // FORCE Pinyin question if the meaning in DB accidentally contains English, is empty, or is "Đang dịch..."
+                if (!askPinyin && (string.IsNullOrWhiteSpace(v.Vietnamese) || v.Vietnamese == "Đang dịch..." || LooksLikeEnglishMeaning(v.Vietnamese)))
                 {
                     askPinyin = true;
                 }
 
                 questionPool.Add((v, askPinyin));
             }
-            
+
             // Shuffle the pool
             questionPool = questionPool.OrderBy(x => random.Next()).ToList();
-            
+
             // Take the required amount
             var selectedQuestions = questionPool.Take(targetQuestionCount).ToList();
 
@@ -157,7 +183,7 @@ namespace LingoToneMVC.Controllers
                 else
                 {
                     var options = new HashSet<string> { v.Vietnamese };
-                    
+
                     // Distractors from Vietnamese DB (exclude English looking strings)
                     var wrongOptions = allVocabs
                         .Where(x => x != v.Vietnamese && !LooksLikeEnglishMeaning(x))
@@ -261,7 +287,7 @@ namespace LingoToneMVC.Controllers
                 var myXp = await _db.QuizResults
                     .Where(x => x.UserId == currentUserId && x.CreatedAt >= startOfWeek)
                     .SumAsync(x => x.XPGained);
-                
+
                 leaderboard.Add(new LeaderboardItemViewModel
                 {
                     Rank = leaderboard.Count > 0 ? leaderboard.Max(x => x.Rank) + 1 : 1,
@@ -318,7 +344,7 @@ namespace LingoToneMVC.Controllers
             if (user == null) return Unauthorized(new { success = false, message = "Bạn cần đăng nhập để lưu XP." });
 
             var questions = await _db.QuizQuestions.Where(q => q.LessonId == lessonId).OrderBy(q => q.Id).ToListAsync();
-            
+
             if (!questions.Any())
             {
                 var sessionJson = HttpContext.Session.GetString($"quiz_lesson_{lessonId}");

@@ -34,10 +34,29 @@ namespace LingoToneMVC.Controllers
             _userManager = userManager;
         }
 
+        private string? GetVietnameseMeaning(string hanzi)
+        {
+            var dictionary = new Dictionary<string, string>
+            {
+                { "大", "lớn, to" },
+                { "爱", "yêu, thích" },
+                { "的", "của (trợ từ sở hữu)" },
+                { "我", "tôi, mình" },
+                { "你", "bạn, cậu" },
+                { "好", "tốt, khỏe" },
+                { "是", "là" },
+                { "不", "không" },
+                { "人", "người" },
+                { "很", "rất" }
+            };
+            if (dictionary.TryGetValue(hanzi, out var meaning)) return meaning;
+            return null;
+        }
+
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-            
+
             var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "hsk.json");
             var json = await System.IO.File.ReadAllTextAsync(jsonPath);
             var hskData = JsonSerializer.Deserialize<List<HskWordDto>>(json) ?? new List<HskWordDto>();
@@ -45,7 +64,7 @@ namespace LingoToneMVC.Controllers
             var groups = new List<LessonGroupViewModel>();
             var titles = new[] { "Cơ bản", "Sơ cấp", "Tiền trung cấp", "Trung cấp", "Cao cấp", "Thành thạo" };
             var lessonNames = new[] { "Từ vựng nền tảng", "Giao tiếp cơ bản", "Gia đình & con người", "Thời gian & thời tiết", "Ăn uống & sở thích", "Mua sắm & du lịch", "Công việc & học tập", "Sở thích 2", "Mở rộng 1", "Mở rộng 2", "Mở rộng 3" };
-            
+
             for (int i = 1; i <= 6; i++)
             {
                 var levelWords = hskData.Where(w => w.level == i).ToList();
@@ -53,12 +72,13 @@ namespace LingoToneMVC.Controllers
 
                 var group = new LessonGroupViewModel { Level = i, Title = $"HSK {i}: {titles[i - 1]}" };
                 int chunks = (int)Math.Ceiling(levelWords.Count / 15.0);
-                
+
                 for (int j = 0; j < chunks; j++)
                 {
                     var chunkWords = levelWords.Skip(j * 15).Take(15).ToList();
                     var name = j < lessonNames.Length ? lessonNames[j] : $"Chủ đề {j + 1}";
-                    group.Lessons.Add(new Lesson {
+                    group.Lessons.Add(new Lesson
+                    {
                         Id = i * 1000 + (j + 1), // Format: 1001, 2005, etc.
                         Title = $"Bài {j + 1}: {name}",
                         Description = $"Chinh phục {chunkWords.Count} từ vựng",
@@ -69,7 +89,7 @@ namespace LingoToneMVC.Controllers
                 }
                 groups.Add(group);
             }
-            
+
             if (user == null)
             {
                 ViewBag.CompletedLessonIds = new List<int>();
@@ -94,7 +114,7 @@ namespace LingoToneMVC.Controllers
         public async Task<IActionResult> Detail(int id)
         {
             var user = await _userManager.GetUserAsync(User);
-            
+
             if (id < 1000)
             {
                 var dbLesson = await _db.Lessons
@@ -140,11 +160,11 @@ namespace LingoToneMVC.Controllers
 
             int level = id / 1000;
             int lessonIndex = (id % 1000) - 1;
-            
+
             var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "hsk.json");
             var json = await System.IO.File.ReadAllTextAsync(jsonPath);
             var hskData = JsonSerializer.Deserialize<List<HskWordDto>>(json) ?? new List<HskWordDto>();
-            
+
             var levelWords = hskData.Where(w => w.level == level).ToList();
             var words = levelWords.Skip(lessonIndex * 15).Take(15).ToList();
 
@@ -153,15 +173,17 @@ namespace LingoToneMVC.Controllers
             var lessonNames = new[] { "Từ vựng nền tảng", "Giao tiếp cơ bản", "Gia đình & con người", "Thời gian & thời tiết", "Ăn uống & sở thích", "Mua sắm & du lịch", "Công việc & học tập", "Sở thích 2", "Mở rộng 1", "Mở rộng 2", "Mở rộng 3" };
             var name = lessonIndex < lessonNames.Length ? lessonNames[lessonIndex] : $"Chủ đề {lessonIndex + 1}";
 
-            var lesson = new Lesson {
+            var lesson = new Lesson
+            {
                 Id = id,
                 Title = $"Bài {lessonIndex + 1}: {name}",
                 Description = $"Chinh phục {words.Count} từ vựng",
                 OrderIndex = lessonIndex + 1,
-                Vocabularies = words.Select(w => new Vocabulary {
+                Vocabularies = words.Select(w => new Vocabulary
+                {
                     Chinese = w.hanzi,
                     Pinyin = w.pinyin,
-                    Vietnamese = w.translations?.eng?.FirstOrDefault() ?? "Đang dịch..."
+                    Vietnamese = GetVietnameseMeaning(w.hanzi) ?? "Đang dịch..."
                 }).ToList(),
                 GrammarPoints = new List<GrammarPoint>(),
                 Dialogues = new List<Dialogue>()
@@ -258,7 +280,8 @@ namespace LingoToneMVC.Controllers
             var grammars = new List<GrammarPoint>();
             if (level == 1)
             {
-                grammars.Add(new GrammarPoint {
+                grammars.Add(new GrammarPoint
+                {
                     Title = "A 是 B",
                     Pattern = "A + 是 + B",
                     Explanation = "Dùng để giới thiệu hoặc xác nhận ai/cái gì là gì.",
@@ -266,7 +289,8 @@ namespace LingoToneMVC.Controllers
                     ExamplePinyin = "Wǒ shì xuéshēng.",
                     ExampleMeaning = "Tôi là học sinh."
                 });
-                grammars.Add(new GrammarPoint {
+                grammars.Add(new GrammarPoint
+                {
                     Title = "不 + Động từ/Tính từ",
                     Pattern = "S + 不 + V/Adj",
                     Explanation = "Dùng để phủ định hành động hoặc tính chất.",
@@ -274,7 +298,8 @@ namespace LingoToneMVC.Controllers
                     ExamplePinyin = "Wǒ bù máng.",
                     ExampleMeaning = "Tôi không bận."
                 });
-                grammars.Add(new GrammarPoint {
+                grammars.Add(new GrammarPoint
+                {
                     Title = "吗 dùng để hỏi",
                     Pattern = "Câu trần thuật + 吗？",
                     Explanation = "Biến câu trần thuật thành câu hỏi Yes/No.",
@@ -285,7 +310,8 @@ namespace LingoToneMVC.Controllers
             }
             else if (level == 2)
             {
-                grammars.Add(new GrammarPoint {
+                grammars.Add(new GrammarPoint
+                {
                     Title = "Đã xảy ra với 了",
                     Pattern = "V + 了",
                     Explanation = "Diễn tả hành động đã hoàn thành.",
@@ -293,7 +319,8 @@ namespace LingoToneMVC.Controllers
                     ExamplePinyin = "Wǒ chī le.",
                     ExampleMeaning = "Tôi ăn rồi."
                 });
-                grammars.Add(new GrammarPoint {
+                grammars.Add(new GrammarPoint
+                {
                     Title = "Đã từng với 过",
                     Pattern = "V + 过",
                     Explanation = "Diễn tả trải nghiệm đã từng xảy ra trong quá khứ.",
@@ -301,7 +328,8 @@ namespace LingoToneMVC.Controllers
                     ExamplePinyin = "Wǒ qù guò Zhōngguó.",
                     ExampleMeaning = "Tôi đã từng đi Trung Quốc."
                 });
-                grammars.Add(new GrammarPoint {
+                grammars.Add(new GrammarPoint
+                {
                     Title = "Muốn/Sắp với 要",
                     Pattern = "S + 要 + V",
                     Explanation = "Diễn tả ý định hoặc sự việc sắp xảy ra.",
@@ -312,7 +340,8 @@ namespace LingoToneMVC.Controllers
             }
             else
             {
-                grammars.Add(new GrammarPoint {
+                grammars.Add(new GrammarPoint
+                {
                     Title = "Mặc dù... Nhưng... (虽然...但是...)",
                     Pattern = "虽然 + Mệnh đề 1, 但是 + Mệnh đề 2",
                     Explanation = "Biểu thị sự nhượng bộ, trái ngược.",
@@ -320,7 +349,8 @@ namespace LingoToneMVC.Controllers
                     ExamplePinyin = "Suīrán xiàyǔ, dànshì wǒ háishì qù.",
                     ExampleMeaning = "Mặc dù trời mưa, nhưng tôi vẫn đi."
                 });
-                grammars.Add(new GrammarPoint {
+                grammars.Add(new GrammarPoint
+                {
                     Title = "Nếu... thì... (如果...就...)",
                     Pattern = "如果 + Điều kiện, (S) + 就 + Kết quả",
                     Explanation = "Biểu thị giả thiết và kết quả.",
@@ -328,7 +358,8 @@ namespace LingoToneMVC.Controllers
                     ExamplePinyin = "Rúguǒ yǒu shíjiān, wǒ jiù qù.",
                     ExampleMeaning = "Nếu có thời gian, tôi sẽ đi."
                 });
-                grammars.Add(new GrammarPoint {
+                grammars.Add(new GrammarPoint
+                {
                     Title = "Câu chữ 把",
                     Pattern = "S + 把 + O + V + Thành phần khác",
                     Explanation = "Nhấn mạnh sự tác động của chủ ngữ lên tân ngữ.",

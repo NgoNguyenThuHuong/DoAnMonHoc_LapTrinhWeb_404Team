@@ -41,14 +41,104 @@
 
                 <div id="ai-grammar-container">
                     <p class="mb-3 text-secondary" style="font-size: 14px;">Nhập câu tiếng Trung của bạn để AI kiểm tra (VD: 我昨天去学校了):</p>
-                    <textarea id="grammar-input" class="form-control mb-3" rows="3" placeholder="Nhập câu tiếng Trung..."></textarea>
+                    <textarea id="grammarInput" class="form-control mb-3" rows="3" placeholder="Nhập câu tiếng Trung..."></textarea>
                     
-                    <button class="btn btn-primary w-100 fw-bold py-2 rounded-3 mb-3" onclick="correctGrammarInput()">Kiểm tra với AI</button>
+                    <button type="button" id="checkGrammarBtn" class="btn btn-primary w-100 fw-bold py-2 rounded-3 mb-3">Kiểm tra với AI</button>
 
-                    <div id="grammar-result" style="display:none;" class="p-3 bg-light rounded-3 border">
-                    </div>
+                    <div id="grammarResult" class="grammar-result" style="display:none;"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Styles {
+    <style>
+        .grammar-result {
+            margin-top: 18px;
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: rgba(236, 253, 245, 0.9);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            color: #065f46;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .ai-result-card h4 {
+            margin-bottom: 10px;
+            font-weight: 800;
+            color: #047857;
+        }
+
+        .ai-result-card p {
+            margin: 6px 0;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const btn = document.getElementById("checkGrammarBtn");
+            const input = document.getElementById("grammarInput");
+            const resultBox = document.getElementById("grammarResult");
+
+            if (!btn || !input || !resultBox) return;
+
+            btn.addEventListener("click", async function () {
+                const sentence = input.value.trim();
+
+                if (!sentence) {
+                    resultBox.style.display = "block";
+                    resultBox.innerHTML = "⚠️ Vui lòng nhập câu tiếng Trung cần kiểm tra.";
+                    return;
+                }
+
+                btn.disabled = true;
+                const oldText = btn.innerHTML;
+                btn.innerHTML = "Đang kiểm tra...";
+
+                resultBox.style.display = "block";
+                resultBox.innerHTML = "⏳ AI đang phân tích câu của bạn...";
+
+                try {
+                    const response = await fetch("/Grammar/CheckGrammar", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            sentence: sentence
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error("Không gọi được API kiểm tra ngữ pháp.");
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        resultBox.innerHTML = `
+                            <div class="ai-result-card">
+                                <h4>🤖 Kết quả sửa lỗi</h4>
+                                <p><strong>Câu gốc:</strong> ${data.original}</p>
+                                <p><strong>Câu sửa:</strong> ${data.corrected}</p>
+                                <p><strong>Giải thích:</strong> ${data.explanation}</p>
+                            </div>
+                        `;
+                    } else {
+                        resultBox.innerHTML = "❌ " + (data.message || "AI chưa thể kiểm tra câu này.");
+                    }
+                } catch (error) {
+                    console.error(error);
+                    resultBox.innerHTML = "❌ Có lỗi xảy ra khi kiểm tra ngữ pháp. Vui lòng kiểm tra Console hoặc Backend.";
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = oldText;
+                }
+            });
+        });
+    </script>
+}

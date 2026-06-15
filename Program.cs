@@ -7,8 +7,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ========== SERVICES ==========
 // Database
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
 
 // Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -49,6 +52,10 @@ builder.Services.AddSession(options =>
 builder.Services.AddTransient<LingoToneMVC.Services.DataSeeder>();
 builder.Services.AddScoped<LingoToneMVC.Services.HskLessonService>();
 
+// AI Services
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<LingoToneMVC.Services.IAiService, LingoToneMVC.Services.GeminiAiService>();
+
 var app = builder.Build();
 
 // ========== PIPELINE ==========
@@ -76,7 +83,10 @@ app.MapControllerRoute(
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    if (db.Database.IsRelational())
+    {
+        db.Database.Migrate();
+    }
     
     // Run Data Seeder
     var seeder = scope.ServiceProvider.GetRequiredService<LingoToneMVC.Services.DataSeeder>();
@@ -84,3 +94,5 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+public partial class Program { }

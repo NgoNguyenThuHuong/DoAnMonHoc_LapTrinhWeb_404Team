@@ -194,6 +194,15 @@
         <!-- Right Column: Results (Hidden initially) -->
         <div class="col-lg-7" id="results-area" style="display: none;">
             
+            <!-- Fallback Banner -->
+            <div id="fallback-banner" class="alert alert-warning align-items-center mb-4" style="display: none; border-radius: 16px; border: 1px solid #f59e0b; background-color: #fffbeb; color: #b45309;">
+                <i class="fa-solid fa-triangle-exclamation fs-4 me-3"></i>
+                <div>
+                    <h6 class="fw-bold mb-1">Hệ thống AI đang quá tải</h6>
+                    <span style="font-size: 13px;">Kết quả dưới đây là dữ liệu tham khảo mô phỏng để bạn không bị gián đoạn trải nghiệm. Vui lòng thử lại bài viết của bạn sau ít phút.</span>
+                </div>
+            </div>
+
             <!-- Ket qua cham diem -->
             <div class="glass-card card mb-4" style="border-radius: 24px; padding: 24px; position: relative;">
                 <div class="position-absolute" style="top: 24px; right: 24px;">
@@ -394,6 +403,13 @@
             const data = await response.json();
             
             if (data.totalScore !== undefined) {
+                // Show fallback banner if needed
+                if (data.isFallback) {
+                    document.getElementById('fallback-banner').style.setProperty('display', 'flex', 'important');
+                } else {
+                    document.getElementById('fallback-banner').style.setProperty('display', 'none', 'important');
+                }
+
                 // Populate Results
                 document.getElementById('total-score-text').innerText = data.totalScore;
                 document.getElementById('total-score-circle').style.background = `conic-gradient(#10b981 ${data.totalScore}%, #e2e8f0 0)`;

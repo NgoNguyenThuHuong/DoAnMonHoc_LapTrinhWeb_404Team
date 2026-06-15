@@ -11,11 +11,13 @@ namespace LingoToneMVC.Controllers
     {
         private readonly AppDbContext _db;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly LingoToneMVC.Services.IAiService _aiService;
 
-        public GrammarController(AppDbContext db, UserManager<ApplicationUser> userManager)
+        public GrammarController(AppDbContext db, UserManager<ApplicationUser> userManager, LingoToneMVC.Services.IAiService aiService)
         {
             _db = db;
             _userManager = userManager;
+            _aiService = aiService;
         }
 
         public async Task<IActionResult> Index()
@@ -74,5 +76,73 @@ namespace LingoToneMVC.Controllers
             ViewBag.UserLevel = user.Level;
             ViewBag.UserStreak = user.Streak;
         }
+
+        [HttpPost]
+        public async Task<IActionResult> CheckGrammar([FromBody] GrammarCheckRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Sentence))
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Vui lòng nhập câu cần kiểm tra."
+                });
+            }
+
+            try
+            {
+                var original = request.Sentence.Trim();
+                
+                var aiResult = await _aiService.CheckGrammarAsync(original);
+                
+                if (aiResult.Success && !aiResult.IsFallback)
+                {
+                    try
+                    {
+                        var doc = System.Text.Json.JsonDocument.Parse(aiResult.Content);
+                        var root = doc.RootElement;
+                        return Json(new
+                        {
+                            success = true,
+                            isFallback = false,
+                            original = original,
+                            corrected = root.GetProperty("corrected").GetString(),
+                            explanation = root.GetProperty("explanation").GetString()
+                        });
+                    }
+                    catch
+                    {
+                        return Json(new
+                        {
+                            success = false,
+                            isFallback = true,
+                            message = "AI trả về dữ liệu không hợp lệ."
+                        });
+                    }
+                }
+                
+                return Json(new
+                {
+                    success = true,
+                    isFallback = true,
+                    original = original,
+                    corrected = original,
+                    explanation = aiResult.ErrorMessage ?? "Hệ thống AI đang quá tải. Vui lòng thử lại sau."
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Lỗi khi kiểm tra ngữ pháp: " + ex.Message
+                });
+            }
+        }
+    }
+
+    public class GrammarCheckRequest
+    {
+        public string Sentence { get; set; } = string.Empty;
     }
 }

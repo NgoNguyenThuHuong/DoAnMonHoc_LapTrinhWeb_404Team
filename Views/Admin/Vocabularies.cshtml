@@ -32,16 +32,17 @@
                         <tr>
                             <td class="fw-bold" style="font-size:20px;">@v.Chinese</td>
                             <td class="text-secondary" style="font-size:14px;">@v.Pinyin</td>
-                            <td>
+                            <td id="vi-td-@v.Id">
                                 @if (hasVietnamese)
                                 {
                                     <span style="font-size:14px;">@v.Vietnamese</span>
                                 }
                                 else
                                 {
-                                    <span class="text-warning" style="font-size:13px;">
-                                        <i class="fa-solid fa-triangle-exclamation me-1"></i>@(v.Vietnamese ?? "–")
-                                    </span>
+                                    <span class="text-secondary" style="font-size:13px;" id="vi-text-@v.Id">Chưa có nghĩa</span>
+                                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="translateVocab(@v.Id, this)" id="btn-trans-@v.Id">
+                                        <i class="fa-solid fa-language"></i> Dịch
+                                    </button>
                                 }
                             </td>
                             <td class="text-secondary" style="font-size:13px;">@(v.Lesson?.Title)</td>
@@ -52,3 +53,37 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+    async function translateVocab(id, btn) {
+        const textSpan = document.getElementById('vi-text-' + id);
+        
+        // UI Loading State
+        const originalBtnHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang dịch...';
+        btn.disabled = true;
+        
+        try {
+            const response = await fetch('/Admin/TranslateVocabulary/' + id, {
+                method: 'POST'
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                // Success
+                document.getElementById('vi-td-' + id).innerHTML = `<span style="font-size:14px;">${data.vietnamese}</span>`;
+            } else {
+                // Error (Fallback/Timeout/Overload)
+                textSpan.innerHTML = `<span class="text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> ${data.message}</span>`;
+                btn.innerHTML = originalBtnHtml;
+                btn.disabled = false;
+            }
+        } catch (err) {
+            textSpan.innerHTML = `<span class="text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> Lỗi kết nối.</span>`;
+            btn.innerHTML = originalBtnHtml;
+            btn.disabled = false;
+        }
+    }
+</script>
+}

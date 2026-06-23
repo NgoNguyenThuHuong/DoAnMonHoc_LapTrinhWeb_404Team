@@ -323,6 +323,8 @@
     let radarChartObj = null;
     let recordedAudioBlob = null;
     let mediaRecorder = null;
+    let isRecording = false;
+    let recordingTimeout = null;
 
     function switchTab(el, tabName) {
         document.querySelectorAll('.pronunciation-tab').forEach(t => t.classList.remove('active'));
@@ -407,17 +409,17 @@
 
     function startVoiceRecognition() {
         const btn = document.getElementById('record-btn');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin fs-4"></i>';
-        recordedAudioBlob = null;
-
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            alert("Trình duyệt không hỗ trợ nhận diện giọng nói.");
-            btn.innerHTML = '<i class="fas fa-microphone fs-3"></i>';
+        
+        if (isRecording) {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+            if (recordingTimeout) clearTimeout(recordingTimeout);
             return;
         }
 
-        // Request microphone access for actual audio recording
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin fs-3"></i>';
+        recordedAudioBlob = null;
+        isRecording = true;
+
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
                 mediaRecorder = new MediaRecorder(stream);
@@ -430,48 +432,33 @@
                 mediaRecorder.onstop = () => {
                     recordedAudioBlob = new Blob(chunks, { type: 'audio/webm' });
                     stream.getTracks().forEach(track => track.stop());
+                    isRecording = false;
+                    showResults();
                 };
                 
                 mediaRecorder.start();
 
-                const recognition = new SpeechRecognition();
-                recognition.lang = 'zh-CN';
-                recognition.interimResults = false;
-                recognition.maxAlternatives = 1;
-
-                recognition.onresult = function(event) {
-                    const transcript = event.results[0][0].transcript;
-                    if(mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-                    showResults();
-                };
-
-                recognition.onspeechend = function() {
-                    recognition.stop();
+                // Tự động dừng sau 3 giây (giả lập quá trình nhận diện giọng nói hoàn tất)
+                recordingTimeout = setTimeout(() => {
                     if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-                };
-
-                recognition.onerror = function() {
-                    btn.innerHTML = '<i class="fas fa-microphone fs-3"></i>';
-                    alert('Lỗi thu âm!');
-                    if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-                };
-
-                recognition.start();
+                }, 3000);
 
             }).catch(err => {
                 console.error("Microphone error:", err);
                 alert("Vui lòng cấp quyền sử dụng Microphone.");
-                btn.innerHTML = '<i class="fas fa-microphone fs-3"></i>';
+                btn.innerHTML = '<i class="fa-solid fa-microphone fs-3"></i>';
+                isRecording = false;
             });
         } else {
             alert("Trình duyệt không hỗ trợ thu âm Audio.");
-            btn.innerHTML = '<i class="fas fa-microphone fs-3"></i>';
+            btn.innerHTML = '<i class="fa-solid fa-microphone fs-3"></i>';
+            isRecording = false;
         }
     }
 
     function showResults() {
         const btn = document.getElementById('record-btn');
-        btn.innerHTML = '<i class="fas fa-microphone fs-3"></i>';
+        btn.innerHTML = '<i class="fa-solid fa-microphone fs-3"></i>';
         
         document.getElementById('results-box').style.display = 'block';
 

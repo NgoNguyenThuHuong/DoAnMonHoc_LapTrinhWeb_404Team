@@ -1,0 +1,365 @@
+@model LingoToneMVC.ViewModels.QuizArenaViewModel
+@{
+    ViewData["Title"] = "Quiz Arena";
+}
+
+<style>
+    .arena-banner {
+        background: linear-gradient(135deg, #4f46e5, #06b6d4);
+        border-radius: 24px;
+        padding: 40px;
+        color: white;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(79, 70, 229, 0.15);
+    }
+    .arena-banner::after {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        top: -100px;
+        right: -100px;
+        pointer-events: none;
+    }
+    .stat-mini-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        min-width: 200px;
+    }
+    .stat-mini-icon {
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+    .level-card {
+        background: white;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .level-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+    }
+    .level-header {
+        padding: 20px 24px;
+        background: rgba(79, 70, 229, 0.02);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .level-title {
+        font-weight: 800;
+        color: #1e293b;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .level-badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 6px 14px;
+        border-radius: 999px;
+    }
+    .level-badge-1 { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .level-badge-2 { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .level-badge-3 { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .level-badge-4 { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .level-badge-5 { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+    .level-badge-6 { background: rgba(236, 72, 153, 0.1); color: #ec4899; }
+
+    .lesson-list {
+        padding: 10px 24px;
+    }
+    .lesson-item {
+        padding: 16px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+    }
+    .lesson-item:last-child {
+        border-bottom: none;
+    }
+    .lesson-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .lesson-icon {
+        width: 40px;
+        height: 40px;
+        background: #f1f5f9;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+    .lesson-item.completed .lesson-icon {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+    .lesson-title-text {
+        font-weight: 700;
+        color: #334155;
+        font-size: 15px;
+        margin-bottom: 2px;
+    }
+    .lesson-desc {
+        color: #64748b;
+        font-size: 13px;
+    }
+    .btn-start-quiz {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 8px 18px;
+        font-size: 14px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        transition: all 0.2s;
+        text-decoration: none !important;
+    }
+    .btn-start-quiz:hover {
+        background: linear-gradient(135deg, #4338ca, #4f46e5);
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(79, 70, 229, 0.3);
+    }
+    .btn-start-quiz.completed {
+        background: #ecfdf5;
+        color: #10b981;
+        box-shadow: none;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .btn-start-quiz.completed:hover {
+        background: #d1fae5;
+        transform: none;
+        box-shadow: none;
+        color: #059669;
+    }
+
+    .leaderboard-card {
+        background: white;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 24px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    }
+    .leaderboard-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border-radius: 14px;
+        margin-bottom: 8px;
+        background: #f8fafc;
+        border: 1px solid rgba(0, 0, 0, 0.02);
+        transition: all 0.2s;
+    }
+    .leaderboard-item.active {
+        background: rgba(79, 70, 229, 0.08);
+        border-color: rgba(79, 70, 229, 0.15);
+    }
+    .rank-badge {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 13px;
+        color: white;
+        margin-right: 14px;
+        flex-shrink: 0;
+    }
+    .rank-1 { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+    .rank-2 { background: linear-gradient(135deg, #94a3b8, #64748b); }
+    .rank-3 { background: linear-gradient(135deg, #d97706, #b45309); }
+    .rank-other { background: #cbd5e1; color: #475569; }
+    .rank-active { background: #4f46e5; }
+    
+    .member-name {
+        font-weight: 700;
+        font-size: 14px;
+    }
+    .member-xp {
+        font-weight: 800;
+        font-size: 14px;
+    }
+</style>
+
+<div class="animate-fade-in">
+    <!-- Banner -->
+    <div class="arena-banner">
+        <div class="row align-items-center">
+            <div class="col-md-7 mb-4 mb-md-0">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 16px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-gamepad fs-3"></i>
+                    </div>
+                    <h1 class="fw-extrabold m-0" style="font-size: 32px; letter-spacing: -0.5px;">Đấu Trường Quiz Arena</h1>
+                </div>
+                <p class="opacity-90 fs-5 mb-0">Thách thức bản thân với hàng loạt câu hỏi trắc nghiệm từ vựng, ngữ pháp. Ôn tập kiến thức, thăng hạng nhanh chóng!</p>
+            </div>
+            <div class="col-md-5 d-flex flex-wrap gap-3 justify-content-md-end">
+                <div class="stat-mini-card">
+                    <div class="stat-mini-icon"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <div class="opacity-75" style="font-size: 12px; font-weight: 600;">Quiz đã làm</div>
+                        <div class="fw-extrabold fs-4">@Model.TotalQuizzesTaken</div>
+                    </div>
+                </div>
+                <div class="stat-mini-card">
+                    <div class="stat-mini-icon text-warning"><i class="fa-solid fa-star"></i></div>
+                    <div>
+                        <div class="opacity-75" style="font-size: 12px; font-weight: 600;">XP Tích lũy Quiz</div>
+                        <div class="fw-extrabold fs-4">@Model.TotalXPEarned XP</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Lesson Groups -->
+        <div class="col-lg-8">
+            <h4 class="fw-bold mb-4 text-dark d-flex align-items-center gap-2">
+                <i class="fa-solid fa-graduation-cap text-primary"></i> Chọn bài học để thi đấu
+            </h4>
+
+            @foreach (var group in Model.LessonGroups)
+            {
+                var isCompletedCount = group.Lessons.Count(l => Model.CompletedQuizLessonIds.Contains(l.Id));
+                <div class="level-card">
+                    <div class="level-header" data-bs-toggle="collapse" data-bs-target="#collapse-level-@group.Level" aria-expanded="true">
+                        <div class="level-title">
+                            <span class="level-badge level-badge-@group.Level">HSK @group.Level</span>
+                            <span>@group.Title</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="text-secondary" style="font-size: 13px; font-weight: 600;">
+                                @isCompletedCount/@group.Lessons.Count bài đã làm
+                            </span>
+                            <i class="fa-solid fa-chevron-down text-secondary fs-6 transition-transform"></i>
+                        </div>
+                    </div>
+
+                    <div id="collapse-level-@group.Level" class="collapse show">
+                        <div class="lesson-list">
+                            @foreach (var lesson in group.Lessons)
+                            {
+                                var isCompleted = Model.CompletedQuizLessonIds.Contains(lesson.Id);
+                                <div class="lesson-item @(isCompleted ? "completed" : "")">
+                                    <div class="lesson-info">
+                                        <div class="lesson-icon">
+                                            @if (isCompleted)
+                                            {
+                                                <i class="fa-solid fa-check"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa-solid fa-book-open"></i>
+                                            }
+                                        </div>
+                                        <div>
+                                            <div class="lesson-title-text">@lesson.Title</div>
+                                            <div class="lesson-desc">@lesson.Description</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <a href="/Quiz?lessonId=@lesson.Id" class="btn-start-quiz @(isCompleted ? "completed" : "")">
+                                            @if (isCompleted)
+                                            {
+                                                <i class="fa-solid fa-rotate-right"></i>
+                                                <span>Làm lại Quiz</span>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa-solid fa-play"></i>
+                                                <span>Bắt đầu Quiz</span>
+                                            }
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Right Column: Leaderboard -->
+        <div class="col-lg-4">
+            <div class="leaderboard-card">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div style="width: 42px; height: 42px; background: rgba(245, 158, 11, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #f59e0b;">
+                        <i class="fa-solid fa-trophy fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold m-0 text-dark" style="font-size: 16px;">Bảng xếp hạng tuần</h5>
+                        <p class="text-secondary m-0" style="font-size: 12px;">Top 10 thi đấu Quiz nhiều nhất</p>
+                    </div>
+                </div>
+
+                @if (Model.WeeklyLeaderboard == null || !Model.WeeklyLeaderboard.Any())
+                {
+                    <div class="text-center text-secondary py-5">
+                        <i class="fa-solid fa-ghost fs-2 mb-3 opacity-50"></i>
+                        <p class="mb-0" style="font-size: 14px;">Chưa có dữ liệu tuần này. Hãy làm bài đầu tiên để lên bảng vàng!</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="d-flex flex-column">
+                        @foreach (var item in Model.WeeklyLeaderboard)
+                        {
+                            <div class="leaderboard-item @(item.IsCurrentUser ? "active" : "")">
+                                <div class="rank-badge @(item.Rank == 1 ? "rank-1" : item.Rank == 2 ? "rank-2" : item.Rank == 3 ? "rank-3" : item.IsCurrentUser ? "rank-active" : "rank-other")">
+                                    @item.Rank
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="member-name @(item.IsCurrentUser ? "text-primary" : "text-dark")">
+                                        @(item.IsCurrentUser ? "Bạn" : item.UserName)
+                                    </div>
+                                </div>
+                                <div class="member-xp @(item.Rank == 1 ? "text-warning" : item.IsCurrentUser ? "text-primary" : "text-secondary")">
+                                    @item.XP XP
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

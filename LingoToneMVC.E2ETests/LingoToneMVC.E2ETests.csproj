@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -16,12 +16,10 @@
     <PackageReference Include="NUnit3TestAdapter" Version="6.2.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Using Include="Xunit" />
-  </ItemGroup>
+
 
   <ItemGroup>
-    <ProjectReference Include="..\LingoToneMVC\LingoToneMVC.csproj" />
+    <ProjectReference Include="..\LingoToneMVC.csproj" />
   </ItemGroup>
 
 </Project>

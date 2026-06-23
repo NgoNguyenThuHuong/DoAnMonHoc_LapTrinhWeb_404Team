@@ -176,6 +176,30 @@ namespace LingoToneMVC.Controllers
 
             if (!alreadyCompleted)
             {
+                if (id >= 1000)
+                {
+                    var lessonExists = await _db.Lessons.AnyAsync(l => l.Id == id);
+                    if (!lessonExists)
+                    {
+                        var dynamicLesson = await _hskLessonService.GetHskLessonByIdAsync(id);
+                        if (dynamicLesson != null)
+                        {
+                            await _db.Database.ExecuteSqlRawAsync(
+                                "SET IDENTITY_INSERT Lessons ON; " +
+                                "INSERT INTO Lessons (Id, Title, Description, OrderIndex, HskLevel, ImageUrl) " +
+                                "VALUES ({0}, {1}, {2}, {3}, {4}, {5}); " +
+                                "SET IDENTITY_INSERT Lessons OFF;",
+                                dynamicLesson.Id,
+                                dynamicLesson.Title ?? "",
+                                dynamicLesson.Description ?? "",
+                                dynamicLesson.OrderIndex,
+                                dynamicLesson.HskLevel ?? "",
+                                dynamicLesson.ImageUrl
+                            );
+                        }
+                    }
+                }
+
                 // Note: We skip fetching from DB for HSK levels to avoid mismatch. 
                 // We just mark it as complete in UserProgress.
                 var progress = new UserProgress

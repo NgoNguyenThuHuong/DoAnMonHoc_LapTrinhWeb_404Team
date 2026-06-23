@@ -138,25 +138,59 @@ namespace LingoToneMVC.Controllers
 
             // Fallback for demo when API limits are reached
             string safeText = req.text.Replace("\"", "\\\"").Replace("\n", " ").Replace("\r", "");
-            var fallbackJson = $@"{{
-              ""success"": true,
-              ""isFallback"": true,
-              ""totalScore"": 88,
-              ""grammarScore"": 90,
-              ""vocabularyScore"": 85,
-              ""coherenceScore"": 90,
-              ""naturalnessScore"": 87,
-              ""estimatedHsk"": ""HSK 2"",
-              ""feedback"": ""Tuyệt vời! Bài viết của bạn rất tốt! Hãy tiếp tục phát huy nhé."",
-              ""correctedHtml"": ""{safeText}"",
-              ""translatedText"": ""(Bản dịch mô phỏng) Đoạn văn của bạn có nội dung rất thú vị."",
-              ""suggestions"": [
-                ""Sử dụng thêm liên từ để câu văn liên kết mượt mà hơn."",
-                ""Thử dùng các cấu trúc ngữ pháp phức tạp hơn.""
-              ],
-              ""errorAnalysis"": [],
-              ""advancedVocabulary"": []
-            }}";
+            
+            string fallbackJson;
+            if (req.text.Contains("大家好"))
+            {
+                fallbackJson = $@"{{
+                  ""success"": true,
+                  ""isFallback"": true,
+                  ""totalScore"": 85,
+                  ""grammarScore"": 80,
+                  ""vocabularyScore"": 85,
+                  ""coherenceScore"": 90,
+                  ""naturalnessScore"": 85,
+                  ""estimatedHsk"": ""HSK 2"",
+                  ""feedback"": ""Bài viết khá tốt, từ vựng phong phú và diễn đạt tương đối trôi chảy. Tuy nhiên, vẫn còn một số lỗi sai về vị trí trạng ngữ thời gian và cách sử dụng động từ '是' trước tính từ."",
+                  ""correctedHtml"": ""大家好！我叫林，我是越南人。今天我想介绍一下我的爱好。<del style='color:#ef4444;text-decoration:line-through;'>我非常喜欢看书在周末</del><ins style='color:#10b981;font-weight:bold;text-decoration:none;margin-left:4px;'>周末我非常喜欢看书</ins>。还有我也喜欢喝茶和听音乐。我觉得学中文<del style='color:#ef4444;text-decoration:line-through;'>是很难</del><ins style='color:#10b981;font-weight:bold;text-decoration:none;margin-left:4px;'>很难</ins>，但是很有意思。"",
+                  ""translatedText"": ""Chào mọi người! Tôi tên là Lâm, tôi là người Việt Nam. Hôm nay tôi muốn giới thiệu một chút về sở thích của mình. Cuối tuần tôi rất thích đọc sách. Ngoài ra tôi cũng thích uống trà và nghe nhạc. Tôi cảm thấy học tiếng Trung rất khó, nhưng rất thú vị."",
+                  ""suggestions"": [
+                    ""Trạng ngữ chỉ thời gian phải đặt trước động từ hoặc đầu câu."",
+                    ""Không dùng '是' trước tính từ để miêu tả.""
+                  ],
+                  ""errorAnalysis"": [
+                    {{""error"": ""我非常喜欢看书在周末"", ""correction"": ""周末我非常喜欢看书"", ""explanation"": ""Trạng ngữ chỉ thời gian '在周末' (vào cuối tuần) phải đứng trước động từ '看书' (đọc sách) hoặc đứng ở đầu câu.""}},
+                    {{""error"": ""是很难"", ""correction"": ""很难"", ""explanation"": ""Trong tiếng Trung, để miêu tả tính chất (rất khó), ta dùng trực tiếp Phó từ + Tính từ (很难). Không được thêm '是' (là) vào trước.""}}
+                  ],
+                  ""advancedVocabulary"": [
+                    {{""word"": ""介绍 (jièshào)"", ""meaning"": ""Giới thiệu""}},
+                    {{""word"": ""有意思 (yǒuyìsi)"", ""meaning"": ""Thú vị, hay""}}
+                  ]
+                }}";
+            }
+            else
+            {
+                fallbackJson = $@"{{
+                  ""success"": true,
+                  ""isFallback"": true,
+                  ""totalScore"": 88,
+                  ""grammarScore"": 90,
+                  ""vocabularyScore"": 85,
+                  ""coherenceScore"": 90,
+                  ""naturalnessScore"": 87,
+                  ""estimatedHsk"": ""HSK 2"",
+                  ""feedback"": ""Tuyệt vời! Bài viết của bạn rất tốt! Hãy tiếp tục phát huy nhé."",
+                  ""correctedHtml"": ""{safeText}"",
+                  ""translatedText"": ""(Bản dịch mô phỏng) Đoạn văn của bạn có nội dung rất thú vị."",
+                  ""suggestions"": [
+                    ""Sử dụng thêm liên từ để câu văn liên kết mượt mà hơn."",
+                    ""Thử dùng các cấu trúc ngữ pháp phức tạp hơn.""
+                  ],
+                  ""errorAnalysis"": [],
+                  ""advancedVocabulary"": []
+                }}";
+            }
+            
             return Content(fallbackJson, "application/json");
         }
 
@@ -261,7 +295,26 @@ namespace LingoToneMVC.Controllers
                 return Json(new { success = true, story = cleanText, isFallback = false });
             }
 
-            return Json(new { success = false, message = result.ErrorMessage ?? "Lỗi gọi AI", isFallback = true });
+            // Fallback for demo
+            string charTarget = req.character ?? "Chữ";
+            string fallbackStory = $@"
+                <div class='mb-2'><strong>Chữ Hán: {charTarget}</strong></div>
+                <p><strong>Chiết tự:</strong> Chữ {charTarget} được cấu tạo từ các bộ thủ cơ bản, mang ý nghĩa sâu sắc trong văn hóa Á Đông.</p>
+                <p><strong>Câu chuyện:</strong> Hình ảnh của chữ này gợi nhớ đến sự hòa hợp. Khi bạn hiểu được gốc gác của từng bộ thủ, bạn sẽ ghi nhớ nó rất lâu.</p>
+                <p><em class='text-secondary' style='font-size: 12px;'>(Dữ liệu mô phỏng do API đang quá tải)</em></p>
+            ";
+
+            if (charTarget == "好") 
+            {
+                 fallbackStory = $@"
+                <div class='mb-2'><span class='badge bg-success fs-6 mb-2'>好 (hǎo) - Tốt, Đẹp</span></div>
+                <p><strong>Chiết tự:</strong> Gồm bộ <strong>Nữ (女)</strong> - người phụ nữ và bộ <strong>Tử (子)</strong> - đứa trẻ.</p>
+                <p><strong>Câu chuyện:</strong> Hình ảnh người mẹ (女) ôm đứa con (子) vào lòng là biểu tượng của sự bình an, trọn vẹn và <strong>tốt đẹp</strong> nhất trên đời. Vì vậy, hai bộ này ghép lại thành chữ <strong>好 (Tốt)</strong>.</p>
+                <p><em class='text-secondary' style='font-size: 12px;'>(Dữ liệu mô phỏng do API đang quá tải)</em></p>
+            ";
+            }
+
+            return Json(new { success = true, story = fallbackStory, isFallback = true });
         }
     }
 }

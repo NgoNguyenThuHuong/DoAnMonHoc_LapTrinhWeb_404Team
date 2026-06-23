@@ -195,7 +195,100 @@ namespace LingoToneMVC.Controllers
                 ViewBag.UserStreak = 0;
             }
 
-            if (lessonId == null) return RedirectToAction("Index", "Lesson");
+            if (lessonId == null)
+            {
+                var lessons = await _hskLessonService.GetAllHskLessonsAsync();
+                var titles = new[] { "Cơ bản", "Sơ cấp", "Tiền trung cấp", "Trung cấp", "Cao cấp", "Thành thạo" };
+                var groups = new List<LessonGroupViewModel>();
+
+                for (int i = 1; i <= 6; i++)
+                {
+                    var levelLessons = lessons.Where(l => l.HskLevel == i.ToString()).ToList();
+                    if (!levelLessons.Any()) continue;
+
+                    var group = new LessonGroupViewModel 
+                    { 
+                        Level = i, 
+                        Title = $"HSK {i}: {titles[i - 1]}" 
+                    };
+                    group.Lessons.AddRange(levelLessons);
+                    groups.Add(group);
+                }
+
+                // Get Weekly Leaderboard
+                var arenaCurrentUserId = _userManager.GetUserId(User);
+                var arenaStartOfWeek = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + 1);
+
+                var arenaRawLeaderboard = await _db.QuizResults
+                    .Include(x => x.User)
+                    .Where(x => x.CreatedAt >= arenaStartOfWeek)
+                    .GroupBy(x => new { x.UserId, x.User!.DisplayName })
+                    .Select(g => new
+                    {
+                        UserId = g.Key.UserId,
+                        UserName = g.Key.DisplayName ?? "Người dùng",
+                        XP = g.Sum(x => x.XPGained)
+                    })
+                    .OrderByDescending(x => x.XP)
+                    .Take(10)
+                    .ToListAsync();
+
+                var arenaLeaderboard = arenaRawLeaderboard.Select((x, idx) => new LeaderboardItemViewModel
+                {
+                    Rank = idx + 1,
+                    UserName = x.UserName,
+                    XP = x.XP,
+                    IsCurrentUser = x.UserId == arenaCurrentUserId
+                }).ToList();
+
+                if (arenaCurrentUserId != null && !arenaLeaderboard.Any(x => x.IsCurrentUser))
+                {
+                    var myXp = await _db.QuizResults
+                        .Where(x => x.UserId == arenaCurrentUserId && x.CreatedAt >= arenaStartOfWeek)
+                        .SumAsync(x => x.XPGained);
+
+                    arenaLeaderboard.Add(new LeaderboardItemViewModel
+                    {
+                        Rank = arenaLeaderboard.Count > 0 ? arenaLeaderboard.Max(x => x.Rank) + 1 : 1,
+                        UserName = "Bạn",
+                        XP = myXp,
+                        IsCurrentUser = true
+                    });
+                }
+
+                // Get User statistics
+                var completedQuizIds = new List<int>();
+                int totalQuizzes = 0;
+                int totalXpEarned = 0;
+
+                if (arenaCurrentUserId != null)
+                {
+                    completedQuizIds = await _db.QuizResults
+                        .Where(x => x.UserId == arenaCurrentUserId)
+                        .Select(x => x.LessonId)
+                        .Distinct()
+                        .ToListAsync();
+
+                    totalQuizzes = await _db.QuizResults
+                        .Where(x => x.UserId == arenaCurrentUserId)
+                        .CountAsync();
+
+                    totalXpEarned = await _db.QuizResults
+                        .Where(x => x.UserId == arenaCurrentUserId)
+                        .SumAsync(x => x.XPGained);
+                }
+
+                var arenaVm = new QuizArenaViewModel
+                {
+                    LessonGroups = groups,
+                    WeeklyLeaderboard = arenaLeaderboard,
+                    CompletedQuizLessonIds = completedQuizIds,
+                    TotalQuizzesTaken = totalQuizzes,
+                    TotalXPEarned = totalXpEarned
+                };
+
+                return View("Arena", arenaVm);
+            }
 
             var lesson = await GetLessonAsync(lessonId.Value);
 
@@ -285,6 +378,26 @@ namespace LingoToneMVC.Controllers
             var generated = await GenerateQuizFromVocab(lesson);
             if (generated.Any())
             {
+                if (lessonId >= 1000)
+                {
+                    var lessonExists = await _db.Lessons.AnyAsync(l => l.Id == lessonId);
+                    if (!lessonExists)
+                    {
+                        await _db.Database.ExecuteSqlRawAsync(
+                            "SET IDENTITY_INSERT Lessons ON; " +
+                            "INSERT INTO Lessons (Id, Title, Description, OrderIndex, HskLevel, ImageUrl) " +
+                            "VALUES ({0}, {1}, {2}, {3}, {4}, {5}); " +
+                            "SET IDENTITY_INSERT Lessons OFF;",
+                            lesson.Id,
+                            lesson.Title ?? "",
+                            lesson.Description ?? "",
+                            lesson.OrderIndex,
+                            lesson.HskLevel ?? "",
+                            lesson.ImageUrl
+                        );
+                    }
+                }
+
                 // To avoid tracking issue, set Id to 0 for auto-increment if we insert to DB
                 foreach (var q in generated) { q.Id = 0; }
                 _db.QuizQuestions.AddRange(generated);

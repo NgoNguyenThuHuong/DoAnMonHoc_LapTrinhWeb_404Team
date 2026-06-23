@@ -26,6 +26,14 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        IConfigurationSection googleAuthNSection = builder.Configuration.GetSection("Authentication:Google");
+        options.ClientId = googleAuthNSection["ClientId"] ?? string.Empty;
+        options.ClientSecret = googleAuthNSection["ClientSecret"] ?? string.Empty;
+    });
+
 // Cookie settings
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -55,6 +63,9 @@ builder.Services.AddScoped<LingoToneMVC.Services.HskLessonService>();
 // AI Services
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<LingoToneMVC.Services.IAiService, LingoToneMVC.Services.GeminiAiService>();
+
+// Email Service
+builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, LingoToneMVC.Services.EmailSender>();
 
 var app = builder.Build();
 

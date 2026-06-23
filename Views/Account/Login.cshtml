@@ -44,12 +44,26 @@
                 <span asp-validation-for="Password" class="field-validation-error"></span>
             </div>
 
-            <div class="form-group d-flex align-items-center mb-4">
-                <input asp-for="RememberMe" type="checkbox" id="RememberMe" class="me-2" />
-                <label for="RememberMe" class="form-label mb-0" style="font-weight:500;cursor:pointer;">Ghi nhớ đăng nhập</label>
+            <div class="form-group d-flex align-items-center justify-content-between mb-4">
+                <div class="d-flex align-items-center">
+                    <input asp-for="RememberMe" type="checkbox" id="RememberMe" class="me-2" />
+                    <label for="RememberMe" class="form-label mb-0" style="font-weight:500;cursor:pointer;">Ghi nhớ đăng nhập</label>
+                </div>
+                <a href="/Account/ForgotPassword" style="font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 500;">Quên mật khẩu?</a>
             </div>
 
             <button type="submit" class="auth-submit-btn">Đăng nhập</button>
+        </form>
+
+        <div style="text-align: center; margin: 20px 0; position: relative;">
+            <hr style="border-top: 1px solid #e0e0e0; margin: 0;">
+            <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: white; padding: 0 10px; color: #6c757d; font-size: 14px;">Hoặc</span>
+        </div>
+
+        <form asp-action="ExternalLogin" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" style="margin-bottom: 20px;">
+            <button type="submit" name="provider" value="Google" class="auth-submit-btn" style="background-color: #fff; color: #444; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <i class="fab fa-google" style="color: #DB4437;"></i> Đăng nhập bằng Google
+            </button>
         </form>
 
         <div class="auth-link">

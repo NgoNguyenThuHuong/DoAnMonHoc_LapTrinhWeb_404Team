@@ -39,7 +39,7 @@ namespace LingoToneMVC.Tests.ControllerTests
         public async Task TranslateVocabulary_Returns_404_If_Id_Not_Found()
         {
             var response = await _client.PostAsync("/Admin/TranslateVocabulary?id=9999", null);
-            
+
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -71,7 +71,7 @@ namespace LingoToneMVC.Tests.ControllerTests
             Mock.Get(mockAi).Invocations.Clear();
 
             var response = await _client.GetAsync("/Admin/Vocabularies");
-            
+
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             Mock.Get(mockAi).Verify(a => a.TranslateVocabularyAsync(It.IsAny<string>()), Times.Never);

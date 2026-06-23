@@ -21,7 +21,7 @@ namespace LingoToneMVC.Tests.FeatureTests
         {
             var client = _factory.CreateClient();
             var response = await client.GetAsync("/Quiz/Session/1");
-            
+
             // It might redirect if it needs auth, or it might just return 200
             response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
         }

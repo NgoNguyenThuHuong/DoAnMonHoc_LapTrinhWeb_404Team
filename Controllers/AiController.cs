@@ -34,9 +34,9 @@ namespace LingoToneMVC.Controllers
 
         public class CareerRoadmapRequest
         {
-            public string career { get; set; }
-            public string level { get; set; }
-            public string goal { get; set; }
+            public string career { get; set; } = string.Empty;
+            public string level { get; set; } = string.Empty;
+            public string goal { get; set; } = string.Empty;
             public int minutesPerDay { get; set; }
         }
 
@@ -51,7 +51,7 @@ namespace LingoToneMVC.Controllers
             return Json(new { success = false, message = result.ErrorMessage, isFallback = result.IsFallback });
         }
 
-        public class CorrectGrammarRequest { public string sentence { get; set; } }
+        public class CorrectGrammarRequest { public string sentence { get; set; } = string.Empty; }
 
         [HttpPost]
         public async Task<IActionResult> CorrectGrammar([FromBody] CorrectGrammarRequest req)
@@ -60,11 +60,11 @@ namespace LingoToneMVC.Controllers
 
             var result = await _aiService.CheckGrammarAsync(req.sentence);
             if (result.Success) return Content(result.Content, "application/json");
-            
+
             return Json(new { success = false, message = result.ErrorMessage, isFallback = result.IsFallback });
         }
 
-        public class GenerateQuizRequest { public string topic { get; set; } public string level { get; set; } public int count { get; set; } }
+        public class GenerateQuizRequest { public string topic { get; set; } = string.Empty; public string level { get; set; } = string.Empty; public int count { get; set; } }
 
         [HttpPost]
         public async Task<IActionResult> GenerateQuiz([FromBody] GenerateQuizRequest req)
@@ -97,7 +97,7 @@ namespace LingoToneMVC.Controllers
             return Content(fallbackJson, "application/json");
         }
 
-        public class TranslateRequest { public string englishText { get; set; } }
+        public class TranslateRequest { public string englishText { get; set; } = string.Empty; }
 
         [HttpPost]
         public async Task<IActionResult> TranslateEngToVie([FromBody] TranslateRequest req)
@@ -110,7 +110,7 @@ namespace LingoToneMVC.Controllers
             return Json(new { vietnamese = req.englishText + " (Hệ thống AI đang bận)", isFallback = true });
         }
 
-        public class EvaluateWritingRequest { public string text { get; set; } }
+        public class EvaluateWritingRequest { public string text { get; set; } = string.Empty; }
 
         [HttpPost]
         public async Task<IActionResult> EvaluateWriting([FromBody] EvaluateWritingRequest req)
@@ -138,7 +138,7 @@ namespace LingoToneMVC.Controllers
 
             // Fallback for demo when API limits are reached
             string safeText = req.text.Replace("\"", "\\\"").Replace("\n", " ").Replace("\r", "");
-            
+
             string fallbackJson;
             if (req.text.Contains("大家好"))
             {
@@ -190,11 +190,11 @@ namespace LingoToneMVC.Controllers
                   ""advancedVocabulary"": []
                 }}";
             }
-            
+
             return Content(fallbackJson, "application/json");
         }
 
-        public class EstimateHskLevelRequest { public string text { get; set; } }
+        public class EstimateHskLevelRequest { public string text { get; set; } = string.Empty; }
 
         [HttpPost]
         public async Task<IActionResult> EstimateHskLevel([FromBody] EstimateHskLevelRequest req)
@@ -226,8 +226,8 @@ namespace LingoToneMVC.Controllers
             return Content(fallbackJson, "application/json");
         }
 
-        public class ChatMessage { public string role { get; set; } public string content { get; set; } }
-        public class ChatRoleplayRequest { public string scenario { get; set; } public List<ChatMessage> history { get; set; } public string userMessage { get; set; } }
+        public class ChatMessage { public string role { get; set; } = string.Empty; public string content { get; set; } = string.Empty; }
+        public class ChatRoleplayRequest { public string scenario { get; set; } = string.Empty; public List<ChatMessage> history { get; set; } = new List<ChatMessage>(); public string userMessage { get; set; } = string.Empty; }
 
         [HttpPost]
         public async Task<IActionResult> ChatRoleplay([FromBody] ChatRoleplayRequest req)
@@ -250,7 +250,7 @@ namespace LingoToneMVC.Controllers
             string fallbackZh = "好的。您想喝茶还是水？";
             string fallbackPy = "Hǎo de. Nín xiǎng hē chá háishì shuǐ?";
             string fallbackVi = "Vâng. Quý khách muốn uống trà hay nước?";
-            
+
             if (req.scenario.Contains("mua sắm") || req.scenario.ToLower().Contains("shopping"))
             {
                 fallbackZh = "这件衣服很适合你。你想试试吗？";
@@ -276,7 +276,7 @@ namespace LingoToneMVC.Controllers
 
         public class HanziStoryRequest
         {
-            public string character { get; set; }
+            public string character { get; set; } = string.Empty;
         }
 
         [HttpPost]
@@ -304,9 +304,9 @@ namespace LingoToneMVC.Controllers
                 <p><em class='text-secondary' style='font-size: 12px;'>(Dữ liệu mô phỏng do API đang quá tải)</em></p>
             ";
 
-            if (charTarget == "好") 
+            if (charTarget == "好")
             {
-                 fallbackStory = $@"
+                fallbackStory = $@"
                 <div class='mb-2'><span class='badge bg-success fs-6 mb-2'>好 (hǎo) - Tốt, Đẹp</span></div>
                 <p><strong>Chiết tự:</strong> Gồm bộ <strong>Nữ (女)</strong> - người phụ nữ và bộ <strong>Tử (子)</strong> - đứa trẻ.</p>
                 <p><strong>Câu chuyện:</strong> Hình ảnh người mẹ (女) ôm đứa con (子) vào lòng là biểu tượng của sự bình an, trọn vẹn và <strong>tốt đẹp</strong> nhất trên đời. Vì vậy, hai bộ này ghép lại thành chữ <strong>好 (Tốt)</strong>.</p>

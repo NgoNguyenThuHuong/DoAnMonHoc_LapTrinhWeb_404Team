@@ -64,7 +64,7 @@ namespace LingoToneMVC.Services
                 try
                 {
                     var response = await _httpClient.PostAsync(url, content);
-                    
+
                     if (response.IsSuccessStatusCode)
                     {
                         var responseString = await response.Content.ReadAsStringAsync();
@@ -83,7 +83,7 @@ namespace LingoToneMVC.Services
 
                         return new AiResult { Success = true, Content = aiText, IsFallback = false };
                     }
-                    
+
                     var statusCode = (int)response.StatusCode;
                     if (statusCode == 429 || statusCode == 503)
                     {

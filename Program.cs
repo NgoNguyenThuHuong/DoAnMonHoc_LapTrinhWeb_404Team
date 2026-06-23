@@ -98,7 +98,7 @@ using (var scope = app.Services.CreateScope())
     {
         db.Database.Migrate();
     }
-    
+
     // Run Data Seeder
     var seeder = scope.ServiceProvider.GetRequiredService<LingoToneMVC.Services.DataSeeder>();
     seeder.SeedAsync().Wait();

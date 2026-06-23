@@ -39,9 +39,9 @@ namespace LingoToneMVC.Tests.ControllerTests
         public async Task EvaluateWriting_Returns_Data_If_Valid()
         {
             _factory.MockAiService.Setup(x => x.EvaluateWritingAsync(It.IsAny<string>()))
-                .ReturnsAsync(new AiResult 
-                { 
-                    Success = true, 
+                .ReturnsAsync(new AiResult
+                {
+                    Success = true,
                     Content = "{ \"totalScore\": 85, \"feedback\": \"Good\", \"correctedText\": \"test\", \"grammarScore\": 80, \"vocabularyScore\": 90, \"fluencyScore\": 85 }",
                     IsFallback = false
                 });
@@ -63,9 +63,9 @@ namespace LingoToneMVC.Tests.ControllerTests
         public async Task EvaluateWriting_Returns_IsFallback_True_If_Ai_Overloaded()
         {
             _factory.MockAiService.Setup(x => x.EvaluateWritingAsync(It.IsAny<string>()))
-                .ReturnsAsync(new AiResult 
-                { 
-                    Success = false, 
+                .ReturnsAsync(new AiResult
+                {
+                    Success = false,
                     ErrorMessage = "API quá tải",
                     IsFallback = true
                 });

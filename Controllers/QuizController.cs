@@ -206,10 +206,10 @@ namespace LingoToneMVC.Controllers
                     var levelLessons = lessons.Where(l => l.HskLevel == i.ToString()).ToList();
                     if (!levelLessons.Any()) continue;
 
-                    var group = new LessonGroupViewModel 
-                    { 
-                        Level = i, 
-                        Title = $"HSK {i}: {titles[i - 1]}" 
+                    var group = new LessonGroupViewModel
+                    {
+                        Level = i,
+                        Title = $"HSK {i}: {titles[i - 1]}"
                     };
                     group.Lessons.AddRange(levelLessons);
                     groups.Add(group);

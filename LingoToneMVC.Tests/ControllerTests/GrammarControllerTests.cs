@@ -39,9 +39,9 @@ namespace LingoToneMVC.Tests.ControllerTests
         public async Task CheckGrammar_Returns_True_If_Valid_And_Mocked_Ai()
         {
             _factory.MockAiService.Setup(x => x.CheckGrammarAsync(It.IsAny<string>()))
-                .ReturnsAsync(new AiResult 
-                { 
-                    Success = true, 
+                .ReturnsAsync(new AiResult
+                {
+                    Success = true,
                     Content = "{ \"original\": \"wo shi xuesheng\", \"corrected\": \"我是学生\", \"explanation\": \"Correct!\" }",
                     IsFallback = false
                 });
@@ -64,9 +64,9 @@ namespace LingoToneMVC.Tests.ControllerTests
         public async Task CheckGrammar_Returns_IsFallback_True_If_Ai_Overloaded()
         {
             _factory.MockAiService.Setup(x => x.CheckGrammarAsync(It.IsAny<string>()))
-                .ReturnsAsync(new AiResult 
-                { 
-                    Success = false, 
+                .ReturnsAsync(new AiResult
+                {
+                    Success = false,
                     ErrorMessage = "API quá tải",
                     IsFallback = true
                 });

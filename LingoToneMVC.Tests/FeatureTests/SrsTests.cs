@@ -24,7 +24,7 @@ namespace LingoToneMVC.Tests.FeatureTests
                 AllowAutoRedirect = false
             });
             var response = await client.GetAsync("/Srs");
-            
+
             response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
         }
     }

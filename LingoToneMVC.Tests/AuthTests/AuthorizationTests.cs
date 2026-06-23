@@ -31,7 +31,7 @@ namespace LingoToneMVC.Tests.AuthTests
                 AllowAutoRedirect = false
             });
             var response = await client.GetAsync("/Progress");
-            
+
             // Should redirect to Login
             response.StatusCode.Should().Be(HttpStatusCode.Redirect);
             response.Headers.Location.ToString().Should().Contain("Login");
@@ -45,7 +45,7 @@ namespace LingoToneMVC.Tests.AuthTests
                 AllowAutoRedirect = false
             });
             var response = await client.GetAsync("/Admin");
-            
+
             // Should redirect to Login or Forbidden
             response.StatusCode.Should().BeOneOf(HttpStatusCode.Redirect, HttpStatusCode.Forbidden);
         }

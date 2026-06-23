@@ -17,7 +17,7 @@ namespace LingoToneMVC.Data
         public DbSet<UserProgress> UserProgresses { get; set; }
         public DbSet<UserLearnedWord> UserLearnedWords { get; set; }
         public DbSet<SrsCard> SrsCards { get; set; }
-        
+
         // New Models for EF Core Migration
         public DbSet<HskWord> HskWords { get; set; }
         public DbSet<GrammarRule> GrammarRules { get; set; }

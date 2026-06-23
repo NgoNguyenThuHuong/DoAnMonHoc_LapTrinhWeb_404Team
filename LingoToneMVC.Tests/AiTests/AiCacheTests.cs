@@ -46,7 +46,7 @@ namespace LingoToneMVC.Tests.AiTests
 
             // First call
             var result1 = await service.TranslateVocabularyAsync("测试");
-            
+
             // Second call
             var result2 = await service.TranslateVocabularyAsync("测试");
 

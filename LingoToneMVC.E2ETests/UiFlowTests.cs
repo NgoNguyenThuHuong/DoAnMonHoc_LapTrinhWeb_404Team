@@ -21,16 +21,16 @@ namespace LingoToneMVC.E2ETests
         [Test]
         public async Task Grammar_Should_Check_And_Display_Result()
         {
-            try 
+            try
             {
                 await Page.GotoAsync($"{BaseUrl}/Grammar");
-                
+
                 await Page.FillAsync("#grammarInput", "我是学生");
                 await Page.ClickAsync("#checkGrammarBtn");
 
                 // Wait for either success result or fallback result
                 await Page.WaitForSelectorAsync("#grammarResult", new() { State = Microsoft.Playwright.WaitForSelectorState.Visible });
-                
+
                 var content = await Page.TextContentAsync("#grammarResult");
                 Assert.IsNotEmpty(content);
             }
@@ -46,14 +46,14 @@ namespace LingoToneMVC.E2ETests
             try
             {
                 await Page.GotoAsync($"{BaseUrl}/Roleplay");
-                
+
                 await Page.FillAsync("#chat-input", "两");
                 await Page.ClickAsync(".btn-send");
 
                 // Input should be disabled immediately
                 var isDisabled = await Page.IsDisabledAsync("#chat-input");
                 Assert.IsTrue(isDisabled);
-                
+
                 // Eventually it should be re-enabled after response
                 await Page.WaitForFunctionAsync("() => document.getElementById('chat-input').disabled === false");
             }

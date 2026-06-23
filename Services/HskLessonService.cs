@@ -67,7 +67,7 @@ namespace LingoToneMVC.Services
                 {
                     var chunkWords = levelWords.Skip(j * 15).Take(15).ToList();
                     var name = j < lessonNames.Length ? lessonNames[j] : $"Chủ đề {j + 1}";
-                    
+
                     var lesson = new Lesson
                     {
                         Id = i * 1000 + (j + 1), // Format: 1001, 2005, etc.
@@ -85,12 +85,12 @@ namespace LingoToneMVC.Services
                         GrammarPoints = new List<GrammarPoint>(),
                         Dialogues = new List<Dialogue>()
                     };
-                    
+
                     foreach (var v in lesson.Vocabularies)
                     {
                         v.Lesson = lesson;
                     }
-                    
+
                     lessons.Add(lesson);
                 }
             }

@@ -27,7 +27,7 @@ namespace LingoToneMVC.Tests.Helpers
         {
             _dbName = Guid.NewGuid().ToString();
             MockAiService = new Mock<IAiService>();
-            
+
             // Setup default AI mocks
             MockAiService.Setup(x => x.TranslateVocabularyAsync(It.IsAny<string>()))
                 .ReturnsAsync(new AiResult { Success = true, Content = "{\"vietnamese\":\"Thử nghiệm\"}" });
@@ -99,7 +99,7 @@ namespace LingoToneMVC.Tests.Helpers
             if (!db.QuizQuestions.Any())
             {
                 var lesson1 = db.Lessons.First();
-                for(int i=1; i<=5; i++)
+                for (int i = 1; i <= 5; i++)
                 {
                     db.QuizQuestions.Add(new QuizQuestion { LessonId = lesson1.Id, Question = $"Q {i}", CorrectAnswer = "A", OptionA = "A", OptionB = "B", OptionC = "C", OptionD = "D" });
                 }
@@ -110,15 +110,15 @@ namespace LingoToneMVC.Tests.Helpers
 
     public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
-        public TestAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, 
-            ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) 
-            : base(options, logger, encoder, clock)
+        public TestAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
+            ILoggerFactory logger, UrlEncoder encoder)
+            : base(options, logger, encoder)
         {
         }
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            var claims = new[] { 
+            var claims = new[] {
                 new Claim(ClaimTypes.Name, "TestUser"),
                 new Claim(ClaimTypes.Role, "Admin")
             };

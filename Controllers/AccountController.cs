@@ -154,16 +154,16 @@ namespace LingoToneMVC.Controllers
             {
                 var email = info.Principal.FindFirstValue(ClaimTypes.Email);
                 var name = info.Principal.FindFirstValue(ClaimTypes.Name) ?? email;
-                
+
                 if (email != null)
                 {
                     var user = await _userManager.FindByEmailAsync(email);
                     if (user == null)
                     {
-                        user = new ApplicationUser 
-                        { 
-                            UserName = email, 
-                            Email = email, 
+                        user = new ApplicationUser
+                        {
+                            UserName = email,
+                            Email = email,
                             DisplayName = name,
                             XP = 0,
                             Level = 1,

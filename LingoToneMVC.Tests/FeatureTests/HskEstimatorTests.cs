@@ -27,7 +27,7 @@ namespace LingoToneMVC.Tests.FeatureTests
             });
 
             var response = await client.PostAsync("/HskEstimator/EvaluateText", content);
-            
+
             response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
         }
     }

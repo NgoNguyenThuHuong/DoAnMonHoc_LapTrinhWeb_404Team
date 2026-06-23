@@ -13,11 +13,11 @@ namespace LingoToneMVC.Controllers
     {
         public int id { get; set; }
         public int level { get; set; }
-        public string hanzi { get; set; }
-        public string pinyin { get; set; }
-        public string radicals { get; set; }
-        public string strokes { get; set; }
-        public HskTranslationDto translations { get; set; }
+        public string hanzi { get; set; } = string.Empty;
+        public string pinyin { get; set; } = string.Empty;
+        public string radicals { get; set; } = string.Empty;
+        public string strokes { get; set; } = string.Empty;
+        public HskTranslationDto translations { get; set; } = null!;
     }
     public class CharacterController : Controller
     {

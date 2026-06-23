@@ -16,14 +16,14 @@ namespace LingoToneMVC.Controllers
     {
         public int id { get; set; }
         public int level { get; set; }
-        public string hanzi { get; set; }
-        public string pinyin { get; set; }
-        public HskTranslationDto translations { get; set; }
+        public string hanzi { get; set; } = string.Empty;
+        public string pinyin { get; set; } = string.Empty;
+        public HskTranslationDto translations { get; set; } = null!;
     }
 
     public class HskTranslationDto
     {
-        public List<string> eng { get; set; }
+        public List<string> eng { get; set; } = new List<string>();
     }
 
     public class LessonController : Controller
@@ -52,10 +52,10 @@ namespace LingoToneMVC.Controllers
                 var levelLessons = lessons.Where(l => l.HskLevel == i.ToString()).ToList();
                 if (!levelLessons.Any()) continue;
 
-                var group = new LessonGroupViewModel 
-                { 
-                    Level = i, 
-                    Title = $"HSK {i}: {titles[i - 1]}" 
+                var group = new LessonGroupViewModel
+                {
+                    Level = i,
+                    Title = $"HSK {i}: {titles[i - 1]}"
                 };
                 group.Lessons.AddRange(levelLessons);
                 groups.Add(group);

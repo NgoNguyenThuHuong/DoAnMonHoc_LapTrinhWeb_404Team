@@ -92,9 +92,9 @@ namespace LingoToneMVC.Controllers
             try
             {
                 var original = request.Sentence.Trim();
-                
+
                 var aiResult = await _aiService.CheckGrammarAsync(original);
-                
+
                 if (aiResult.Success && !aiResult.IsFallback)
                 {
                     try
@@ -120,7 +120,7 @@ namespace LingoToneMVC.Controllers
                         });
                     }
                 }
-                
+
                 string correctedText = "Dữ liệu mô phỏng do AI đang bận.";
                 string explanationText = aiResult.ErrorMessage ?? "Hệ thống AI đang quá tải. Vui lòng thử lại sau.";
 
